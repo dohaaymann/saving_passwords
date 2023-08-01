@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "694442098751",
+    "project_id": "saving-password",
+    "storage_bucket": "saving-password.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:694442098751:android:c4fae6516e0d081fc0f88a",
+        "android_client_info": {
+          "package_name": "com.example.saving_password"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "694442098751-9r46jo2s0hep92c3lv97ed48ef6jfb31.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlsjZneNFb8qMnGdEHs9_fjBDksW0pTa4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "694442098751-9r46jo2s0hep92c3lv97ed48ef6jfb31.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "694442098751-39do4i24qkjleu8gd45aggnvgav8hn8k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.savingPassword"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

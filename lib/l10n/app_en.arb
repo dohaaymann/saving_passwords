@@ -1,0 +1,19 @@
+{
+     "passwords":"passwords",
+     "edit":"Edit",
+     "add":"Add",
+     "save":"Save",
+     "done":"Done",
+     "aDD":"ADD",
+     "add_username": "add username",
+     "add_password": "add password",
+     "user_Name": "User Name",
+     "password":"password",
+     "notes":"Notes",
+     "add_a_note":"Add a Note",
+     "cancel":"Cancel",
+     "last_modified":"Last modified",
+     "deletee":"Delete field ?",
+     "delete":"Delete",
+     "upload":"Upload Photo"
+}
