@@ -1,197 +1,592 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
+
+import 'dart:async';
+
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_shake_animated/flutter_shake_animated.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:saving_password/add_data.dart';
+import 'package:saving_password/key.dart';
+import 'package:saving_password/lock.dart';
+import 'package:saving_password/reset.dart';
+import 'package:saving_password/sql.dart';
+import 'package:widget_circular_animator/widget_circular_animator.dart';
 import 'acc_data.dart';
-
+import 'dataa.dart';
+import 'animations/container_transition.dart';
+import 'animations/fade_through_transition.dart';
+import 'animations/shared_axis_transition.dart';
 bool b=true,a=true;
-class passwords extends StatelessWidget {
-  bool ln;
-    passwords({required this.ln}){
-      b=true;
-      a=true;
-       print(ln);
-    }
-  List l_acc=[];
-  var username,pass;
-  CollectionReference user=FirebaseFirestore.instance.collection("acc");
-  CollectionReference user1=FirebaseFirestore.instance.collection("acc").doc().collection("acc_data");
+class passwords extends StatefulWidget {
+  var ln;
+  passwords({required this.ln});
+  @override
+  State<passwords> createState() => _passwordsState(ln: ln);
+}
 
-
-  void messagestream(var Id) async{
-    await for(var snapshot in FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data").snapshots()){
-      for(var mess in snapshot.docs){
-        username=mess.get("user");
-        pass=mess.get("pass");
-      }
-    }
+class _passwordsState extends State<passwords> {
+  @override
+  late bool ln;
+  _passwordsState({required this.ln}){
+    b=true;
+    a=true;
   }
+  @override
+  var rt;
 
-  void getdata(var Id) async{
-    var c= await FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data").get();
-    c.docs.forEach((element) {
-      for(var mess in c.docs){
-        print(mess.data());
-      }
+  SQLDB sql=SQLDB();
+  List l_pass=[];
+  List l_user=[];
+  List searchlist=[];
+  readdata()async{
+    var res=await sql.read("spass");
+    l_pass.addAll(res);
+    if(this.mounted){
+      setState(() { });
+    }
+    print(res);
+  }
+  List logo=[];
+
+  // readuser()async{
+  //   var res=await sql.selectuser();
+  //   l_user.addAll(res);
+  //   if(this.mounted){
+  //     setState(() { });
+  //   }
+  //   print(res);
+  // }
+  List<Color> colors = [Color(0xff54192d), Color.fromRGBO(246,156,113,1),Color(0xffa642560),Color(0xff80a3c9),Color(0xffC28EB4),
+    Color(0xff223c55),Colors.teal,Color(0xff54192d),Color(0xffe9bcb9),Color(0xffC28EB4),Color.fromRGBO(246,156,113,1),
+    Color(0xff80a3c9),Color(0xffa642560),Color(0xff223c55), Color(0xfff4af36),Color(0xff54192d),Color(0xffe9bcb9),Color(0xffC28EB4),Color.fromRGBO(246,156,113,1),
+    Color(0xff80a3c9),Color(0xffa642560),Color(0xff223c55), Color(0xfff4af36),Color(0xff54192d),Color(0xffe9bcb9),Color(0xffC28EB4),Color.fromRGBO(246,156,113,1),
+    Color(0xff80a3c9),Color(0xffa642560),Color(0xff223c55), Color(0xfff4af36),Color(0xff54192d),Color(0xffe9bcb9),Color(0xffC28EB4),Color.fromRGBO(246,156,113,1),
+    Color(0xff80a3c9),Color(0xffa642560),Color(0xff223c55), Color(0xfff4af36),Color(0xff54192d),Color(0xffe9bcb9),Color(0xffC28EB4),Color.fromRGBO(246,156,113,1),
+    Color(0xff80a3c9),Color(0xffa642560),Color(0xff223c55),
+   ];
+  @override
+
+  var play=false;
+  List matchQuery=[];
+  void search(String enteredKeyword) {
+    if (enteredKeyword.isEmpty) {
+     l_user = l_pass;
+    } else {
+     l_user = l_pass
+          .where((user) =>
+          user['acc'].toLowerCase().contains(enteredKeyword.toLowerCase()))
+          .toList();
+    }
+    setState(() {
+      matchQuery=l_user;
     });
   }
-@override
-
+  @override
+  void initState() {
+    readdata();
+    super.initState();
+  }
+  ScrollController ctr = ScrollController();
+  TextEditingController _tsearch=TextEditingController();
+  bool taped=false;var out='';
   Widget build(BuildContext context) {
+   (context as Element).markNeedsBuild();
+    var D=Provider.of<dataa>(context);
     return
-      SafeArea(
-        child: Directionality(textDirection: ln?TextDirection.ltr:TextDirection.rtl,
-          child: Scaffold(
-          resizeToAvoidBottomInset: true,
-            appBar: AppBar(backgroundColor: Colors.teal[900],
-          centerTitle:true,automaticallyImplyLeading: false,
-           actions: [
-             Row(mainAxisAlignment: MainAxisAlignment.end,
-               children: [
-             a?TextButton(onPressed: (){
-                   b = !b; a = !a;
-                   (context as Element).markNeedsBuild();
-                 }, child:Text((AppLocalizations.of(context)!.edit),style: TextStyle(color: Colors.white,fontSize: 18),)):TextButton(onPressed: (){
-               a = !a;b = !b;
-               (context as Element).markNeedsBuild();
-             }, child:Text((AppLocalizations.of(context)!.cancel),style: TextStyle(color: Colors.white,fontSize: 18),))
-               ],
-             )
-          ],
-          title:Text(AppLocalizations.of(context)!.passwords,textAlign: TextAlign.center),
-            ),
-            floatingActionButton: FloatingActionButton(backgroundColor:Colors.teal[700] ,
-          onPressed: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
-               add_data(user: "", pass: "", app: "", ln: ln)
-            ));              },child:Icon(Icons.add,size: 30,) ,),
-            body:
-            SizedBox(
-              child:
-              SingleChildScrollView(
-                child: Column(
-                  children: [
-                    StreamBuilder(  stream:user.snapshots(),
-                         builder:  (context, snapshot) {
-                          for(var mess in snapshot.data!.docs){
-                              final messageget=mess.get("account");
-                              final messagew=Text("$messageget");
-                              l_acc.add(messagew);
-                          }
-                          return ListView.builder(
-                            itemCount:snapshot?.data?.docs?.length ,shrinkWrap: true,physics: ClampingScrollPhysics(),
-                            itemBuilder: (context, i) {
-                              DocumentSnapshot data=snapshot!.data!.docs[i];
-                              return Container(  margin: EdgeInsets.all(10),height: 70,
-                                decoration:
-                              BoxDecoration(borderRadius:BorderRadiusDirectional.circular(15),color: Colors.teal[700]),
-                                child: InkWell(
-                                  onLongPress: (){},
-                                  onTap: ()async{
-                                    var c=await FirebaseFirestore.instance.collection("acc").doc(data.id).collection("acc_data");
-                                    print("---------------------");
-                                    void getdata(var Id) async{
-                                      var c= await FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data").get();
-                                      c.docs.forEach((element) {
-                                        for(var mess in c.docs){
-                                          username=mess.data();
-                                        }
-                                      });
-                                    }
-                                   print(username);
-                                    print(data.id);
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
-                                        acc_data(app:data["account"],Id: data.id,ln:ln
-                                        ),));
-                                    print("---------------------");
-                                  },
-                                 child:
-                                      Row(
-                                        children: [
-                                          Container(margin: EdgeInsets.all(0),width: 70,height: 70
-                                              ,alignment:Alignment.center,decoration: BoxDecoration(color: Colors.blueGrey[200],
-                                                  borderRadius: BorderRadius.only(topRight: Radius.circular(15),
-                                                    topLeft: Radius.circular(15),  bottomLeft: Radius.circular(15),
-                                                      bottomRight:Radius.circular(15) ))
-                                            ,child: 
-                                              Icon(Icons.lock,size: 30,color: Colors.teal[900],)
-                                          ),
-                                          Container( margin: EdgeInsets.only(left: 10,right: 7),
-                                            child: Text((data['account']!).toString(),style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold),),
-                                          ),Expanded(child: Padding(padding: EdgeInsetsDirectional.all(10)))
-                                         ,Container(child:b?enter():delete(Id_d: data.id,))
-                                        ],
-                                      )
+      WillPopScope(onWillPop: ()async{
+       if(out=='') {
+         out=Fluttertoast.showToast(msg: 'Press back again to exit',fontSize: 20).toString();
+           Timer? timer = Timer(Duration(seconds:3), (){
+             out='';
+           });
+           return false;
+      }else{
+         SystemNavigator.pop();
+         return false;
+       }
+
+        },
+        child: Directionality(textDirection: !ln?TextDirection.rtl:TextDirection.ltr,
+            child: Consumer<dataa>(builder:  (context,D, child) {
+              return  Scaffold(
+                  // backgroundColor: Color(0xff18604a),
+                  // backgroundColor:,
+                  resizeToAvoidBottomInset: true,
+                  appBar: AppBar(leading: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: _OpenContainerWrapper(
+                      transitionType: ContainerTransitionType.fade,
+                      closedBuilder: (BuildContext _, VoidCallback openContainer) {
+                        return Container(
+                            margin:EdgeInsets.all(2),decoration:BoxDecoration(color:Color(0xfff4af36) ,borderRadius: BorderRadius.circular(100)),
+                            child:IconButton(onPressed:openContainer, icon:FaIcon(FontAwesomeIcons.userShield,size: 20,))
+                        );
+                      },
+                    ),
+
+                  ),
+                    backgroundColor:Color(0xff02182E),elevation:0,scrolledUnderElevation:40,
+                    centerTitle:true,automaticallyImplyLeading: false,
+                    actions: [
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Container(decoration: BoxDecoration(color: Color(0xfff4af36) ,borderRadius: BorderRadius.circular(300)),
+                          child:l_pass.isNotEmpty!=0?(
+                            a?TextButton(onPressed: (){
+                              // Fluttertoast.showToast(msg: 'Press back again to exit');
+                              b = !b; a = !a;
+                              (context as Element).markNeedsBuild();
+                            }, child:Text((AppLocalizations.of(context)!.edit),style: TextStyle(color: Colors.white,fontSize:20),)):TextButton(onPressed: (){
+                              a = !a;b = !b;
+                              (context as Element).markNeedsBuild();
+                            }, child:Text((AppLocalizations.of(context)!.cancel),style: TextStyle(color: Colors.white,fontSize: 18),))):
+                        TextButton(onPressed: null, child:
+                        Text((AppLocalizations.of(context)!.edit),style: TextStyle(color: Colors.grey,fontSize: 18),))
+                          ,),
+                      )
+                    ],
+                    title:
+                    ShaderMask(
+                      shaderCallback: (bounds) => LinearGradient(
+                        colors: [Color(0xfff4af36),Colors.deepOrange,Color(0xff54192d), Color.fromRGBO(246,156,113,1),Color(0xffa642560),Color(0xff80a3c9),Colors.deepOrange,Color(0xfff4af36)],
+                      ).createShader(bounds),
+                      child: Text(AppLocalizations.of(context)!.passwords,textAlign: TextAlign.center,style: TextStyle(fontSize:35,fontFamily: "DMSerifDisplay-Italic")
+              ))),
+                  floatingActionButton:
+                  // FloatingActionButton(onPressed: (){
+                  //   print(l_pass);
+                  //   print(l_pass.isEmpty);
+                  //   print(l_user);
+                  // }),
+                  !b?null: OpenContainer(
+                    transitionType: ContainerTransitionType.fadeThrough,
+                    openBuilder: (BuildContext context, VoidCallback _) {
+                      // return lock();
+                      return add_data(ln: D.ln);
+                      // return reset(ver_id: "ver_id", phone: "phone");
+                    },
+                    closedElevation: 6.0,
+                    closedShape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(50),
+                      ),
+                    ),
+                    closedColor: Theme.of(context).colorScheme.secondary,
+                    closedBuilder: (BuildContext context, VoidCallback openContainer) {
+                      return Container( height: _fabDimension,
+                        width: _fabDimension,color: Color(0xfff4af36),
+                        child: Icon(
+                          Icons.add,size:35,
+                          color:Colors.white,
+                        ),
+                      );
+                    },
+                  ),
+                  body:
+                      Container(height: double.infinity,
+              decoration: BoxDecoration(
+              gradient:LinearGradient(
+                  begin: Alignment.bottomCenter,end: Alignment.topCenter,
+              colors: [Colors.black,Color(0xff02182E),]),
+              ),
+                          // decoration:
+                          // BoxDecoration(
+                          //   image: DecorationImage(
+                          //     image: AssetImage("pic/mix2.jpeg"),
+                          //     fit: BoxFit.cover,colorFilter: ColorFilter.mode(Colors.black12, BlendMode.color),
+                          //   ),
+                          // ),
+              child:ListView(children: [
+              l_pass.isEmpty?
+              SizedBox(height:MediaQuery.of(context).size.height,
+                child: Column(children: [
+                        SizedBox(height: 150,),
+
+                  Container(padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(shape: BoxShape.circle,
+                    color: Color(0xfff4af36),
+                  ),alignment: Alignment.center,
+                    child: Image.asset("pic/giphy (1).gif",height:200,),
+                  ) ,Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Text((AppLocalizations.of(context)!.empty),style: TextStyle(color:Colors.white60,fontSize:16,fontWeight: FontWeight.bold)),
+                      ),Expanded(child: SizedBox()),
+                    ],),
+              ):
+                  Column(
+                    children: [
+                      SizedBox(height:5,),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child:Container(
+                          decoration: BoxDecoration(color: Colors.white,
+                          borderRadius: BorderRadius.circular(15)
+                        ),
+                            child: TextFormField(onTap: () =>setState(() {
+                              taped=true;
+                            }),onChanged:(e){ setState(() {
+                              search(e);
+                            });},
+                              controller: _tsearch,onTapOutside: (v){FocusManager.instance.primaryFocus?.unfocus();}
+                              ,decoration: InputDecoration(hintStyle: TextStyle(fontSize:18),
+                                hintText:(AppLocalizations.of(context)?.search),prefixIcon: Icon(Icons.search),border: InputBorder.none,
+                                  suffixIcon:taped?
+                                  IconButton(onPressed: () {
+                                    setState(() {
+                                      FocusManager.instance.primaryFocus?.unfocus();
+                                      _tsearch.clear();
+                                      taped=false;
+                                    });
+                                  }, icon:FaIcon(FontAwesomeIcons.xmark,size:20,)):null
+                              ),
+                            )
+                        )),
+                      matchQuery.isEmpty?ListView.builder(itemCount:l_pass.length,shrinkWrap: true,physics: ClampingScrollPhysics(),
+                                controller: ctr, itemBuilder: (context, i) {
+                         return OpenContainer<bool>(
+                                     closedColor:Colors.transparent,
+                                     transitionType: ContainerTransitionType.fade,
+                                     openBuilder: (BuildContext _, VoidCallback openContainer) {
+                                       return  acc_data(id:l_pass[i]['id'],title:l_pass[i]['acc']);
+                                     },
+                                     tappable: false,closedElevation: 0,
+                                     closedShape: const RoundedRectangleBorder(),
+                                     closedBuilder: (BuildContext _, VoidCallback openContainer) {
+                                       return SingleChildScrollView(
+                                         child: Container( margin: EdgeInsets.all(6),height: 70,
+                                              decoration:
+                                              BoxDecoration(borderRadius:BorderRadiusDirectional.circular(25),color:colors[i]),
+                                           child: ListTile(
+                                             onTap:openContainer,
+                                                     leading:Image.asset(l_pass[i]['logo'],fit:BoxFit.cover,height:60,),
+                                                     title:Padding(
+                                                         padding: const EdgeInsets.only(top:4),
+                                                         child: Text(l_pass[i]['acc'].toString(),style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold),),
+                                                       ),
+                                                       subtitle: Text(l_pass[i]['user'].toString(),style: TextStyle(color: Colors.white),),
+                                                   // Expanded(child: Padding(padding: EdgeInsetsDirectional.all(10)))
+                                                     trailing:b?enter():
+                                                      ShakeWidget(autoPlay: true,
+                                                          shakeConstant:ShakeLittleConstant1(),child:
+                                                          delete(id:l_pass[i]['id'],ln: ln,))
+                                         ),
+                                         ),
+                                       );
+                                     },
+                                   );
+                                 },
+                               ):ListView.builder(itemCount:matchQuery.length,shrinkWrap: true,physics: ClampingScrollPhysics(),
+                        controller: ctr, itemBuilder: (context, i) {
+                          return OpenContainer<bool>(
+                            closedColor:Colors.transparent,
+                            transitionType: ContainerTransitionType.fade,
+                            openBuilder: (BuildContext _, VoidCallback openContainer) {
+                              return  acc_data(id:matchQuery[i]['id'],title:matchQuery[i]['acc']);
+                            },
+                            tappable: false,closedElevation: 0,
+                            closedShape: const RoundedRectangleBorder(),
+                            closedBuilder: (BuildContext _, VoidCallback openContainer) {
+                              return SingleChildScrollView(
+                                child: Container( margin: EdgeInsets.all(6),height: 70,
+                                  decoration:
+                                  BoxDecoration(borderRadius:BorderRadiusDirectional.circular(25),color:colors[i]),
+                                  child: ListTile(
+                                      onTap:openContainer,
+                                      leading:Image.asset(matchQuery[i]['logo'],fit:BoxFit.cover,height:60,),title:Padding(
+                                    padding: const EdgeInsets.only(top:4),
+                                    child: Text(matchQuery[i]['acc'].toString(),style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold),),
+                                  ),
+                                      subtitle: Text(matchQuery[i]['user'].toString(),style: TextStyle(color: Colors.white),),
+                                      // Expanded(child: Padding(padding: EdgeInsetsDirectional.all(10)))
+                                      trailing:b?enter():
+                                      ShakeWidget(autoPlay: true,
+                                          shakeConstant:ShakeLittleConstant1(),child:
+                                          delete(id:matchQuery[i]['id'],ln: ln,))
+                                  ),
                                 ),
                               );
                             },
-                         );
+                          );
+                        },
+                      )
+                    ])
+              ]
+              )
+              ));
                             },
-                          )
-                  ],
-                ),
-              ),
-            )
-    ),
+        ),
         ),
       );
-
   }
 }
-
-class delete extends StatelessWidget {
+class delete extends StatefulWidget {
+  var id,ln;
+  delete({required this.id,required this.ln});
   @override
-  var Id_d;
-  delete({required this.Id_d});
+  State<delete> createState() => _deleteState();
+}
+
+class _deleteState extends State<delete> {
+  @override
+  SQLDB sql=SQLDB();
   Widget build(BuildContext context) {
-    return IconButton(onPressed: ()async{
+    var D=Provider.of<dataa>(context);
+    return Consumer<dataa>(builder: (context,D, child) {
+      return IconButton(onPressed: ()async{
+        return  showDialog(context: context, builder:(context) {
+          return SizedBox(height: 40,width: 200,
+            child: AlertDialog(
+                insetPadding: EdgeInsets.all(7),
+                // contentPadding: EdgeInsets.all(1),
+                backgroundColor: Color.fromRGBO(0,25,52,1),
+                shape:UnderlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                title: Text((AppLocalizations.of(context)!.deletee),textAlign: TextAlign.center,style: TextStyle(color:Colors.white,fontSize:20,fontWeight: FontWeight.bold),),
+                actions:[
+                  Column(
+                    children:[
+                      Row( mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Container(margin:EdgeInsetsDirectional.only(top: 1,end: 5),child: ElevatedButton(style:
+                       ElevatedButton.styleFrom(backgroundColor: Color(0xfff4af36)),
+                              onPressed: (){
+                                // Navigator.pop(context);
+                                Fluttertoast.showToast(msg: 'Press back again to exit');
+                              },
+                              child:Text((AppLocalizations.of(context)!.cancel),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
 
-           return  showDialog(context: context, builder:(context) {
-             return SizedBox(height: 50,width: 200,
-               child: AlertDialog(
-                   shape:UnderlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                   title: Text((AppLocalizations.of(context)!.deletee),textAlign: TextAlign.center,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-                   actions:[
-                     Column(
-                       children:[
-                         Row( mainAxisAlignment: MainAxisAlignment.spaceAround,
-                           children: [
-                             Container( margin:EdgeInsetsDirectional.only(top: 10,end: 5),child: ElevatedButton(
-                                 onPressed: (){
-                                   Navigator.pop(context);
-                                 },
-                                 child:Text((AppLocalizations.of(context)!.cancel),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
 
-                             Container( margin:EdgeInsetsDirectional.only(top: 10,end: 5),child: ElevatedButton(
-                                 onPressed: () async{
-                    var z=await FirebaseFirestore.instance.collection("acc").doc(Id_d).collection("acc_data").doc();
+                          Container( margin:EdgeInsetsDirectional.only(top: 1,end: 5),child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Color(0xfff4af36)),
+                              onPressed: () async{
+                                setState(() {
+                                  var res=sql.delete(widget.id);
+                                  print(res);
+                                });
+                                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => passwords(ln:widget.ln),));
+                              },
+                              child:Text((AppLocalizations.of(context)!.delete),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
+                        ],)],
+                  ),
+                ]
+            ),
+          );});
 
-                                 try{ print(Id_d);
-                                     await FirebaseFirestore.instance.collection("acc").doc(Id_d).delete();
-                          await FirebaseFirestore.instance.collection("acc").doc(Id_d).collection("acc_data").doc("D").delete();
-                          print (z.id);
-                                   }catch(e){
-                                     print("error: $e");
-                                   }
-                                  Navigator.pop(context);
-                                 },
-                                 child:Text((AppLocalizations.of(context)!.delete),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
-                           ],)],
-                     ),
-                   ]
-               ),
-             );});
-
-    }, icon: Icon(Icons.delete,color: Colors.white,));
-  }}
+      }, icon: Icon(Icons.delete,color: Colors.white,));
+    });
+  }
+}
 
 class enter extends StatelessWidget {
   @override
 
   Widget build(BuildContext context) {
     return IconButton(onPressed: (){}, icon: Icon(Icons.arrow_forward_ios,color: Colors.white,));
+  }
+}
+class CustomSearchDelegate extends SearchDelegate {
+  // Demo list to show querying
+  List<String> searchTerms = [
+    "Apple",
+    "Banana",
+    "Mango",
+    "Pear",
+    "Watermelons",
+    "Blueberries",
+    "Pineapples",
+    "Strawberries"
+  ];
+
+  // first overwrite to
+  // clear the search text
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        onPressed: () {
+          query = '';
+        },
+        icon: Icon(Icons.clear),
+      ),
+    ];
+  }
+
+  // second overwrite to pop out of search menu
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        close(context, null);
+      },
+      icon: Icon(Icons.arrow_back),
+    );
+  }
+
+  // third overwrite to show query result
+  @override
+  Widget buildResults(BuildContext context) {
+    List<String> matchQuery = [];
+    for (var fruit in searchTerms) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(
+          title: Text(result),
+        );
+      },
+    );
+  }
+
+  // last overwrite to show the
+  // querying process at the runtime
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    List<String> matchQuery = [];
+    for (var fruit in searchTerms) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(
+          title: Text(result),
+        );
+      },
+    );
+  }
+}
+
+const String _loremIpsumParagraph =
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod '
+    'tempor incididunt ut labore et dolore magna aliqua. Vulputate dignissim '
+    'suspendisse in est. Ut ornare lectus sit amet. Eget nunc lobortis mattis '
+    'aliquam faucibus purus in. Hendrerit gravida rutrum quisque non tellus '
+    'orci ac auctor. Mattis aliquam faucibus purus in massa. Tellus rutrum '
+    'tellus pellentesque eu tincidunt tortor. Nunc eget lorem dolor sed. Nulla '
+    'at volutpat diam ut venenatis tellus in metus. Tellus cras adipiscing enim '
+    'eu turpis. Pretium fusce id velit ut tortor. Adipiscing enim eu turpis '
+    'egestas pretium. Quis varius quam quisque id. Blandit aliquam etiam erat '
+    'velit scelerisque. In nisl nisi scelerisque eu. Semper risus in hendrerit '
+    'gravida rutrum quisque. Suspendisse in est ante in nibh mauris cursus '
+    'mattis molestie. Adipiscing elit duis tristique sollicitudin nibh sit '
+    'amet commodo nulla. Pretium viverra suspendisse potenti nullam ac tortor '
+    'vitae.\n'
+    '\n'
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod '
+    'tempor incididunt ut labore et dolore magna aliqua. Vulputate dignissim '
+    'suspendisse in est. Ut ornare lectus sit amet. Eget nunc lobortis mattis '
+    'aliquam faucibus purus in. Hendrerit gravida rutrum quisque non tellus '
+    'orci ac auctor. Mattis aliquam faucibus purus in massa. Tellus rutrum '
+    'tellus pellentesque eu tincidunt tortor. Nunc eget lorem dolor sed. Nulla '
+    'at volutpat diam ut venenatis tellus in metus. Tellus cras adipiscing enim '
+    'eu turpis. Pretium fusce id velit ut tortor. Adipiscing enim eu turpis '
+    'egestas pretium. Quis varius quam quisque id. Blandit aliquam etiam erat '
+    'velit scelerisque. In nisl nisi scelerisque eu. Semper risus in hendrerit '
+    'gravida rutrum quisque. Suspendisse in est ante in nibh mauris cursus '
+    'mattis molestie. Adipiscing elit duis tristique sollicitudin nibh sit '
+    'amet commodo nulla. Pretium viverra suspendisse potenti nullam ac tortor '
+    'vitae';
+
+const double _fabDimension = 56.0;
+class _DetailsPage extends StatelessWidget {
+  const _DetailsPage({this.includeMarkAsDoneButton = true});
+
+  final bool includeMarkAsDoneButton;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Details page'),
+        actions: <Widget>[
+          if (includeMarkAsDoneButton)
+            IconButton(
+              icon: const Icon(Icons.done),
+              onPressed: () => Navigator.pop(context, true),
+              tooltip: 'Mark as done',
+            )
+        ],
+      ),
+      body: ListView(
+        children: <Widget>[
+          Container(
+            color: Colors.black38,
+            height: 250,
+            child: Padding(
+              padding: const EdgeInsets.all(70.0),
+              child: Image.asset(
+                'assets/placeholder_image.png',
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Title',
+                  style: Theme
+                      .of(context)
+                      .textTheme
+                      .headlineSmall!
+                      .copyWith(
+                    color: Colors.black54,
+                    fontSize: 30.0,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _loremIpsumParagraph,
+                  style: Theme
+                      .of(context)
+                      .textTheme
+                      .bodyMedium!
+                      .copyWith(
+                    color: Colors.black54,
+                    height: 1.5,
+                    fontSize: 16.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class _OpenContainerWrapper extends StatelessWidget {
+  const _OpenContainerWrapper({
+    required this.closedBuilder,
+    required this.transitionType,
+  });
+
+  final CloseContainerBuilder closedBuilder;
+  final ContainerTransitionType transitionType;
+
+  @override
+  Widget build(BuildContext context) {
+    return OpenContainer<bool>(
+      transitionType: transitionType,
+      openBuilder: (BuildContext context, VoidCallback _) {
+        return key();
+      },
+      tappable: false,closedColor: Color.fromRGBO(0,25,52,1),closedElevation: 0,
+      closedBuilder: closedBuilder,
+    );
   }
 }

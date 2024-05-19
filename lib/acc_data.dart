@@ -1,17 +1,27 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-//import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:saving_password/main.dart';
 import 'package:saving_password/passwords.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-List image_list=[];
+import 'package:saving_password/sql.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'dataa.dart';
 bool b=true,a=false,w=true;
-var username,password,note,image_get,n=1;
+var username,password,note,image_get,n=1,url;
 String? Url,URL;
 String? t;
 var textapp=new TextEditingController();
@@ -19,391 +29,600 @@ var textuser=new TextEditingController();
 var textpass=new TextEditingController();
 var textnote=new TextEditingController();
 var textimage=new TextEditingController();
-
 var textm=new TextEditingController();
-class acc_data extends StatelessWidget {
-
-  var image,image2,image3;
-   _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(allowMultiple: false);
-    if (result == null) return;
-    var image =result.files.first;
-    var image2 =result.files.first.path;
-    print(image2);
-    try{
-      var Store=FirebaseStorage.instance.ref();
-      var r_name=Random().nextInt(100000);
-      final pathh="files/$r_name${image!.name}";
-      final file=File(image!.path!);
-       final upload_photo= await Store.child(pathh).putFile(file);
-       final d=await Store.child(pathh).getDownloadURL();
-       print(d);
-    }
-    catch(e){print("ERROR: $e");}
-
-  }
-  get_image()async{
-     var ref=await FirebaseStorage.instance.ref().child("files").listAll();
-      ref.items.forEach((element) {
-        print("_______________________");
-        print(element);
-      });
-  }
-
-  void messagestream() async{
-    await for(var snapshot in FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data").snapshots()){
-      for(var mess in snapshot.docs){
-        print("username:${mess.get("user")}");
-       print("passwaord:${mess.get("pass")}");
-       print("Url:${mess.get("image")}");
-        URL=mess.get("image");
-       print("time:${mess.get("time")}");
-       print("note:${mess.get("note")}");
-
-      }
-    }
-  }
-  void getdata() async{
-    var c= await FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data").get();
-    c.docs.forEach((element) {
-      for(var mess in c.docs){
-       textuser.text=(mess.get("user"));
-       textpass.text=(mess.get("pass"));
-       textm.text=mess.get("time");
-       textnote.text=mess.get("note");
-       URL=mess.get("image");
-       textimage.text=mess.get("image");
-       Url=URL;
-      }
-    });
-  }
-
-  final app,Id;bool ln;
-  acc_data({required this.app,required this.Id,required this.ln}){
-    getdata();
-   messagestream();
-    Url=URL;
-    //(context as Element).markNeedsBuild();
-    print("Textimage:${textimage.text}");
-    print("Urlllll:$Url");
-    print("URlllll:$URL");
-  }
-  List l_acc=[];
+var texturl=new TextEditingController();
+class acc_data extends StatefulWidget {
+  var id,title;
+  acc_data({required this.id, required this.title});
   @override
-  CollectionReference user0=FirebaseFirestore.instance.collection("acc");
-  CollectionReference user1=FirebaseFirestore.instance.collection("acc").doc().collection("acc_data");
-  var Store=FirebaseStorage.instance.ref();
-  Widget build(BuildContext context) {
-    return
-      Directionality(
-        textDirection:ln?TextDirection.ltr:TextDirection.rtl,
-        child: Scaffold(resizeToAvoidBottomInset: true,
-         appBar: AppBar(backgroundColor: Colors.teal[900],
-           leading: IconButton(onPressed: (){
-             Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
-                 passwords(ln: ln)
-             ));
-         }, icon: Icon(Icons.arrow_back)),
-           title: Text(app),automaticallyImplyLeading: false,
-           actions: [
-             TextButton(onPressed: ()async{
-               if(textuser.text==username){
-                 print("errorrrrrrrrrrrrrrrrrrrrrrr");
-               }else{
-               try{
-                 t=(DateTime.now().year.toString())+'/'+(DateTime.now().month.toString())+'/'+(DateTime.now().day.toString());
-               await FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data").doc("D").
-              update({"user":textuser.text,"pass":textpass.text,"time":t,"note":textnote.text,"image":Url});
-
-               }
-           catch(e){print("Error: $e");}
-               Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
-                   passwords(ln:ln
-                   ),));
-             }},
-                 child: Text((AppLocalizations.of(context)!.save),style: TextStyle(color: Colors.white,fontSize: 18),))
-           ],
-         ),
-         body:
-         SingleChildScrollView(
-           child: Column(
-             mainAxisAlignment: MainAxisAlignment.start,crossAxisAlignment: CrossAxisAlignment.start,
-             children:[
-               // Url != null ? image_storage(Id: Id,)
-               //                 : Text(
-               //               "No Image",
-               //               style: TextStyle(fontSize: 20),
-               //             ),
-               view(app: app,pass:password,user: username,time: t),
-               Column(
-                 children: [
-               Container(
-                   margin: EdgeInsets.only(left: 20,top: 30,bottom:5),
-                   child: Text((AppLocalizations.of(context)!.notes),style: TextStyle(fontWeight: FontWeight.bold),)),
-               Container(
-                   decoration: BoxDecoration(color: Colors.white38,borderRadius: BorderRadius.circular(10)),height: 100,
-                   padding: EdgeInsets.only(left: 10,bottom: 10,right: 10),
-                   child:
-                   TextFormField(controller: textnote,onChanged: ((value) {
-                     value=textnote.text;
-                   }),
-                       expands: true,maxLines: null,minLines: null,textAlign: TextAlign.right,
-                       decoration:InputDecoration(border: OutlineInputBorder(borderRadius:BorderRadius.circular(10)),
-                           label: Text((AppLocalizations.of(context)!.add_a_note),style: TextStyle()),disabledBorder:InputBorder.none
-                   )),
-               ),Container(alignment: Alignment.centerRight,margin: EdgeInsets.only(right: 10),
-                 child: ElevatedButton(
-                               onPressed: ()async {
-                                 try{  final result = await FilePicker.platform.pickFiles(allowMultiple: false);
-                                 if (result == null) return;
-                                 var image =result.files.first;
-                                 final file=File(image!.path!);
-                                 print("fileeeeeeee:$file");
-                                   var Store=await FirebaseStorage.instance.ref();
-                                   var r_name=Random().nextInt(100000);
-                                   final pathh="files/$r_name${image!.name}";
-                                   final upload= await Store.child(pathh).putFile(file);
-                                    Url=await Store.child(pathh).getDownloadURL();
-                                    (context as Element).markNeedsBuild();
-                                 await FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data").doc("D").
-                                 update({"user":textuser.text,"pass":textpass.text,"time":t,"note":textnote.text,"image":Url});
-                                   print("URLLLLLLLLLLLLLLLLLLLLLL:$Url");
-                                 }
-                                 catch(e){print("ERROR: $e");}
-                               },
-                               child: Text('Upload Photo'),
-                             ),
-               ),
-                   // Padding(
-                   //           padding: c
-                   //           onst EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-                   //           child: ClipRRect(
-                   //             borderRadius: BorderRadius.circular(8),
-                   //             child: Image.network("https://firebasestorage.googleapis.com/v0/b/saving-password.appspot.com/o/files%2F16074IMG_20230723_225707.jpg?alt=media&token=0bedd517-81a5-4ac1-bb7a-f68e3140fdc0",
-                   //                     fit: BoxFit.cover,
-                   //                     width: MediaQuery.of(context).size.width,
-                   //                     height: 300,
-                   //             )
-                   //           ),
-                   //         )
-                 ],),ElevatedButton(onPressed: (){print("Url:$Url");
-                  // image_list.clear();
-
-              // print(image_list[0]);
-                   print(image_list);
-               print("Textimage:${textimage.text}");
-               }, child: Text("print")),
-                 Url!="" ?
-                image_storage(Id: Id,Url: Url,)
-                :Text("Emptyyy"),
-             ] ),
-         ),
-    ),
-      );
-  }
+  State<acc_data> createState() => _acc_dataState(id: id,title: title);
 }
 
-
-class view extends StatelessWidget {
+class _acc_dataState extends State<acc_data> {
   @override
-  var user, pass, app,time;
+  SQLDB sql=SQLDB();
+  var id,title;
+  _acc_dataState({required this.id,required this.title,});
+   var l_data=[];
+  var isPressed=false;var _image=null;
+  List<String> l_images=[];
+  List l_test=[];
+  var last_m="- \ - \ -";
+  readbyid()async{
+    var res=await sql.readbyid(id);
+    l_data.addAll(res);
+    if(l_data[0]['image']==""){
+      print("//////////////////");
+    }
+    if(this.mounted){
+    if(this.mounted){
+      setState(() {
+        textapp.text=l_data[0]['acc'];
+        if(l_data[0]['Url']!=null){texturl.text=l_data[0]['Url'];}
+        if(l_data[0]['user']!=null){textuser.text=l_data[0]['user'];}
+        if(l_data[0]['pass']!=null){textpass.text=l_data[0]['pass'];}
+        if(l_data[0]['note']!=null){textnote.text=l_data[0]['note'];}
+        if(l_data[0]['time']!=null){last_m=l_data[0]['time'].toString();}
+        if(l_data[0]['image']!=null||l_data[0]['image']!=""){textimage.text=l_data[0]['image'];}
 
-  view({required this.user, required this.pass, required this.app,required this.time});
+      });
+      print("__________ read by id done ---------------");
+    }
+    print(res);
+  }}
+  select_img()async{
+    var x;var res=await sql.selectimg(id);
+    var y=res.toList().first;
+    for (final e in y.entries) {
+      setState(() {
+        x=e.value;
+        if(l_data[0]['image']==""){
+         l_test.clear();
+        }else{
+       var output=x.split(',');
+       print(output);
+          l_test.addAll(output);print("########$l_test");print(l_test.isEmpty);
+          print(l_test.length);
+          for(int i=0;i<l_test.length;i++)
+            {
+              if(l_test[i][0]==" "){
+                l_test[i]=l_test[i].substring(1);
+              }
+            }
+        }
+      });
+    }
+     print(res);
+  }
+  @override
+  clearfields(){
+    textuser.clear();
+    textpass.clear();
+    texturl.clear();
+    textnote.clear();
+  }
+  var edit=true;
+  var S_E=true;
+  var hide=true;
+  void initState() {
+    // TODO: implement initState
+    edit=true;
+    S_E=true;
+    hide=true;
+   print(ln);
+    readbyid();
+    print(texturl.text);
 
+    select_img();
+    super.initState();
+  }
+  @override
+  Future<bool>_requestPermission(Permission permission) async
+  {
+    AndroidDeviceInfo build=await DeviceInfoPlugin().androidInfo;
+    if(build.version.sdkInt!>=30){
+      var re=await Permission.manageExternalStorage.request();
+      if(re.isGranted)
+      {
+        return true;
+      }
+      else{
+        return false;
+      }
+    }
+    else{
+      if(await permission.isGranted)
+      {
+        return true;
+      }
+      else{
+        var result=await permission.request();
+        if(result.isGranted)
+        {
+          return true;
+        }
+        else{
+          return false;
+        }
+      }
+    }
+  }
   Widget build(BuildContext context) {
-    return Container(width: double.maxFinite,
-      decoration: BoxDecoration(
-          color: Colors.teal[700], borderRadius: BorderRadius.circular(10)),
-      margin: EdgeInsets.only(right: 10,left: 10,top: 10),
-      child:
-      Column(mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Container(height: 80,
-              decoration: BoxDecoration(color: Colors.transparent),
-              padding: EdgeInsets.only(top: 10),
-              child:
-              Row(
-                children: [
-                  Padding(padding: EdgeInsets.only(left: 10))
-                  ,Container(margin: EdgeInsets.all(0),width: 70,height: 70
-                      ,alignment:Alignment.center,decoration: BoxDecoration(color: Colors.blueGrey[200],
-                          borderRadius: BorderRadius.circular(20)),
-                      child:  Icon(Icons.lock_open_outlined,size: 30,color: Colors.teal[900],)
-                  ),
-                  Padding(padding: EdgeInsets.only(left: 10)),
-                  Column(mainAxisAlignment: MainAxisAlignment.start,crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(app, style: TextStyle(fontSize: 25,color: Colors.white)),
-                      Padding(padding: EdgeInsets.all(2)),
-                      Row(
-                        children: [
-                          Text((AppLocalizations.of(context)!.last_modified), style: TextStyle(fontSize: 12,color: Colors.white)),
-                         Padding(padding: EdgeInsets.only(left: 7)),
-                          SizedBox(height: 20,
-                              width:100,child: TextFormField(style: TextStyle(fontSize: 12),
-                                controller: textm,
-                                readOnly: true,onChanged: (value) {
-                                value = textm.text;
-                              },
-                                  decoration: InputDecoration(
-                                   // contentPadding: EdgeInsets.only(left: 5, right: 0),
-                                    enabledBorder: InputBorder.none,
-                                  )
-                              ))
-                        ],
-                      ),
-                    ],),
-                ],
-              )),
-          Divider(),
-          Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 10),
-                child: Text((AppLocalizations.of(context)!.user_Name), style: TextStyle(fontSize: 18,color: Colors.white)),
-              ),
-              SizedBox(width: 250,
-                child: TextField(controller: textuser,
-                    onChanged: (value) {
-                  value = username;
-                },
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.only(left: 10, right: 5),
-                      enabledBorder: InputBorder.none,
-                    )),
-              ),
+    var D=Provider.of<dataa>(context);
+    return Consumer<dataa>(builder: (context, D, child) {
+      return Scaffold(resizeToAvoidBottomInset: true,
+          appBar: AppBar(backgroundColor:Color(0xff02172C),elevation: 0,
+            leading: IconButton(onPressed: (){
+              Navigator.of(context).pop();
+              clearfields();
+            }, icon: Icon(Icons.arrow_back)),
+            title: Text(title,style: TextStyle(fontSize: 27)),automaticallyImplyLeading: false,
+            actions: [
+              S_E?
+              InkWell(onTap: ()async{
+                setState(() {
+                  edit=!edit;
+                  S_E=!S_E;
+                });
+              },
+                child: Container(alignment: Alignment.center,width:70,
+                    decoration: BoxDecoration(color: Color(0xfff4af36),borderRadius: !D.ln?BorderRadius.only(bottomRight: Radius.circular(30)):
+                    BorderRadius.only(bottomLeft: Radius.circular(30))),
+                    child:Text((AppLocalizations.of(context)!.edit),style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),)),
+              ):
+              InkWell(onTap: ()async{
+                setState(() {
+                  edit=!edit;
+                  S_E=!S_E;
+                });
+                t=(DateTime.now().year.toString())+'/'+(DateTime.now().month.toString())+'/'+(DateTime.now().day.toString());
+                var res=await sql.update({
+                  "user":"${textuser.text}",
+                  "pass":"${textpass.text}",
+                  "image":"${l_test.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(' ', '')}",
+                  "note":"${textnote.text}",
+                  "time":"${t}",
+                  "Url":"${texturl.text}"
+                },"id=$id");
+                print(res);
+                late BuildContext dialogContext = context;
+                if(res>0){
+                  Timer? timer = Timer(Duration(milliseconds: 3000), (){
+                    Navigator.pop(dialogContext);
+                  });
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
+                      passwords(ln:D.ln
+                      ),));
+                  return showDialog(
+                      context: context,
+                      builder: (BuildContext context) {dialogContext=context;
+                      return
+                        AlertDialog(insetPadding:EdgeInsets.all(120),
+                            titlePadding: EdgeInsets.only(top:10,bottom:10),
+                            shape: OutlineInputBorder(
+                                borderSide: BorderSide.none),
+                            backgroundColor: Color(0xfff4af36),
+                          title: Text((AppLocalizations.of(context)!.saved), textAlign: TextAlign.center,
+                              style: TextStyle(fontWeight: FontWeight.bold,
+                                  fontSize:20,
+                                  color: Colors.black),)
+                        );
+                      });
+                  // Fluttertoast.showToast(msg:(AppLocalizations.of(context)!.saved),fontSize: 20);
+                }
+              },
+                child: Container(alignment: Alignment.center,width:70,
+                    decoration: BoxDecoration(color: Colors.grey[500],borderRadius: !D.ln?BorderRadius.only(bottomRight: Radius.circular(30)):
+                    BorderRadius.only(bottomLeft: Radius.circular(30))),
+                  child:Text((AppLocalizations.of(context)!.save),style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black,fontSize: 20),)),
+              )
             ],
           ),
-          Divider(),
-          Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 15, right: 17),
-                child: Text((AppLocalizations.of(context)!.password), style: TextStyle(fontSize: 18,color: Colors.white)),
-              ),
-              SizedBox(width: 250,
-                child: TextField(controller: textpass,
-                    onChanged: (value) {
-                      value = password;
+          body:Consumer<dataa>(builder: (context, D, child) =>
+             Directionality(textDirection:!D.ln?TextDirection.rtl:TextDirection.ltr,
+                child: Container(width: double.infinity,height: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient:LinearGradient(
+                        begin: Alignment.bottomCenter,end: Alignment.topCenter,
+                        colors: [Colors.black,Color(0xff02182E),]),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,crossAxisAlignment: CrossAxisAlignment.start,
+                        children:[
+                          //-----------------------
+                          Container(width: double.maxFinite,
+                            decoration: BoxDecoration(
+                                color:edit?Color(0xfff4af36):Colors.grey[500], borderRadius: BorderRadius.circular(10)),
+                            margin: EdgeInsets.only(right: 10,left: 10,top: 10),
+                            child:
+                            Column(mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Container(height: 80,
+                                    decoration: BoxDecoration(color: Colors.transparent),
+                                    padding: EdgeInsets.only(top: 10),
+                                    child:
+                                    Row(
+                                      children: [
+                                        Padding(padding: EdgeInsets.only(left: 10))
+                                        ,Container(margin: EdgeInsets.all(0),width: 70,height: 70
+                                            ,alignment:Alignment.center,decoration: BoxDecoration(color:Color(0xff001934),
+                                                borderRadius: BorderRadius.circular(20)),
+                                            child:  Icon(Icons.lock_open_outlined,size: 30,color: Color(0xfff4af36),)
+                                        ),
+                                        Padding(padding: EdgeInsets.only(left: 10)),
+                                        Column(mainAxisAlignment: MainAxisAlignment.start,crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(title, style: TextStyle(fontSize: 25,color: Colors.black,fontWeight:FontWeight.bold)),
+                                            Padding(padding: EdgeInsets.all(2)),
+                                            Row(
+                                              children: [
+                                                Text((AppLocalizations.of(context)!.last_modified), style: TextStyle(fontSize: 12,color: Colors.black)),
+                                                Padding(padding: EdgeInsets.only(left: 7)),
+                                               Text(last_m)
+                                              ],
+                                            ),
+                                          ],),
+                                      ],
+                                    )),
+                                Divider(height: 7,),
+                                Row(
+                                  children: [
+                                    Container(margin: EdgeInsets.only(left: 8,right: 8),
+                                      child: Text((AppLocalizations.of(context)!.user_Name),style: TextStyle(color:Colors.black,
+                                          fontWeight:FontWeight.w800,fontSize: 18)),
+                                    ),
+                                    Expanded(
+                                      child: TextField( onTapOutside: (v){FocusManager.instance.primaryFocus?.unfocus();},controller: textuser,style: TextStyle(fontSize: 18), readOnly: edit,
+                                          decoration: InputDecoration(hintText:(AppLocalizations.of(context)!.add_username),
+                                            contentPadding: EdgeInsets.only(left: 10, right: 5),
+                                            border:edit?InputBorder.none:UnderlineInputBorder(),
+                                          )),
+                                    ),
+                                  ],
+                                ),
+                                Divider(),
+                                Row(
+                                  children: [
+                                    Container(margin: EdgeInsets.only(left: 8,right:10),width:90,
+                                      child: Text((AppLocalizations.of(context)!.password),style: TextStyle(color:Colors.black,fontWeight:FontWeight.bold,fontSize:18)),
+                                    ),
+                                    Expanded(
+                                      child: TextField( onTapOutside: (v){FocusManager.instance.primaryFocus?.unfocus();},controller: textpass,style: TextStyle(fontSize: 18), readOnly: edit,
+                                          onChanged: (value) {
+                                            value = password;
+                                          },obscureText: hide,
+                                          decoration: InputDecoration(hintText:(AppLocalizations.of(context)!.add_password),
+                                            contentPadding: EdgeInsets.only(left: 10, right: 5),border:edit?InputBorder.none:UnderlineInputBorder()
+                                          )),
+                                    ),hide?IconButton(onPressed: (){setState(() {
+                                      hide=!hide;
+                                    });}, icon:FaIcon(FontAwesomeIcons.eyeSlash,size:20,)):
+                                    IconButton(onPressed: (){setState(() {
+                                      hide=!hide;
+                                    });}, icon:FaIcon(FontAwesomeIcons.eye,size: 20,))
+                                  ],
+                                ), Divider(height: 7,),
+
+                              ],
+                            ),
+                          ),
+                          //-----------------------
+                          Align(alignment:Alignment.topLeft,
+                            child: Container(decoration: BoxDecoration(color:edit?Color(0xfff4af36):Colors.grey[500],borderRadius: BorderRadius.only(topRight: Radius.circular(25),topLeft: Radius.circular(25)))
+                                ,padding:EdgeInsets.only(left: 16,right: 16,top: 8,bottom:4) ,
+                                margin: EdgeInsets.only(left: 20,top:15,right: 20),
+                                child: Text((AppLocalizations.of(context)!.website),style: TextStyle(color:Colors.black,fontWeight: FontWeight.bold,fontSize: 20),)),
+                          ),Container(
+                            decoration: BoxDecoration(color:Colors.white,borderRadius: BorderRadius.circular(10)),
+                            margin: EdgeInsets.only(left: 10,bottom: 10,right: 10),
+                            child:
+                            TextFormField( style:TextStyle(fontSize:19,color:texturl.text.isEmpty?null:Colors.blue),onTapOutside: (v){FocusManager.instance.primaryFocus?.unfocus();},
+                                controller: texturl,readOnly: edit,
+                                decoration:InputDecoration(floatingLabelBehavior: FloatingLabelBehavior.never,hintStyle: TextStyle(fontSize: 19),
+                                    suffixIcon:IconButton(onPressed:
+                                          ()async{
+                                        var url = "${texturl.text}";
+                                        if (await canLaunchUrl(Uri.parse(url))) {
+                                          await launchUrl(Uri.parse(url));
+                                        } else {
+                                          throw 'Could not launch $url';
+                                        }
+                                    }, icon:FaIcon(FontAwesomeIcons.chrome,color: texturl.text.length>0?Colors.blue:null,)),
+                                    border: OutlineInputBorder(borderRadius:BorderRadius.circular(10)),
+                                    hintText:"example.com",disabledBorder:edit?InputBorder.none:UnderlineInputBorder()
+                                )),
+                          ),
+                          Column(
+                            children: [
+                              Align(alignment:Alignment.topLeft,
+                                child: Container(decoration: BoxDecoration(color:edit?Color(0xfff4af36):Colors.grey[500],borderRadius: BorderRadius.only(topRight: Radius.circular(25),topLeft: Radius.circular(25)))
+                                    ,padding:EdgeInsets.only(left: 16,right: 16,top: 8,bottom:4) ,
+                                    margin: EdgeInsets.only(left: 20,top:7,right: 20),
+                                    child: Text((AppLocalizations.of(context)!.notes),style: TextStyle(color:Colors.black,fontWeight: FontWeight.bold,fontSize: 20),)),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(color:Colors.white,borderRadius: BorderRadius.circular(10)),height: 100,
+                                margin: EdgeInsets.only(left: 10,bottom: 10,right: 10),
+                                child:
+                                TextFormField(controller: textnote,onTapOutside: (v){FocusManager.instance.primaryFocus?.unfocus();},
+                                    expands: true,maxLines: null,minLines: null,style: TextStyle(fontSize:16),readOnly: edit,
+                                    decoration:InputDecoration(floatingLabelBehavior:FloatingLabelBehavior.never,border: OutlineInputBorder(borderRadius:BorderRadius.circular(10)),
+                                        hintText:(AppLocalizations.of(context)!.add_a_note),disabledBorder:InputBorder.none
+                                    )),
+                              ),Row(
+                                children: [Expanded(child: SizedBox()),
+                                  Expanded(
+                                    child: InkWell(splashColor: Colors.grey,
+                                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                                            (Set<MaterialState> states) {
+                                          if (states.contains(MaterialState.pressed))
+                                            return Colors.redAccent; //<-- SEE HERE
+                                          return null; // Defer to the widget's default.
+                                        },
+                                      ),
+                                      highlightColor: Colors.transparent,
+                                      onHighlightChanged: (param){
+                                        setState((){
+                                          isPressed = param;
+                                        });
+                                      },
+                                      onTap:()async{
+                                        showDialog(context: context, builder:(context) {
+                                          return SizedBox(height: 40,width: 200,
+                                            child: AlertDialog( backgroundColor: Color(0xff02182E),contentPadding: EdgeInsets.all(0),
+                                                shape:UnderlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                title: Text((AppLocalizations.of(context)!.choose),
+                                                  textAlign: TextAlign.center,style:
+                                                TextStyle(color:Colors.white,fontSize: 22,fontWeight: FontWeight.bold),),
+                                                actions:[
+                                                  Column(
+                                                    children:[
+                                                      Column(
+                                                        children: [
+                                                          Row( mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                            children: [
+                                                              Expanded(
+                                                                child: InkWell(
+                                                                    onTap:()async{
+                                                                      // Timer? timer = Timer(Duration(milliseconds: 3000), (){
+                                                                      //   CircularProgressIndicator();
+                                                                      //   Navigator.pop(dialogContext);
+                                                                      //
+                                                                      // });
+                                                                      var status = await Permission.storage.status;
+                                                                      debugPrint("storage permission " + status.toString());
+                                                                      if (await Permission.storage.isDenied) {
+
+                                                                        debugPrint("sorage permission ===" + status.toString());
+
+                                                                        await Permission.storage.request();
+                                                                      } else {
+                                                                        debugPrint("permission storage " + status.toString());
+                                                                        // do something with storage like file picker
+                                                                      }
+                                                                      // //------------------
+                                                                      try{
+                                                                        await _requestPermission(Permission.storage).catchError((e){print("---------$e");
+                                                                        return "===$e";});
+                                                                        if(await _requestPermission(Permission.storage)==true){
+                                                                          print("Permission is granted");
+                                                                          File? image;
+                                                                          try {
+                                                                            final image = await ImagePicker().pickImage(source: ImageSource.camera);
+                                                                            if(image == null) return;
+                                                                            if(this.mounted){
+                                                                              setState(() { });
+                                                                            }
+                                                                            String str="";
+                                                                            var imageTemp = File(image.path);
+                                                                            setState(() {
+                                                                              str="File: '${image.path}'";
+                                                                              l_test.add(image.path);
+                                                                            });
+                                                                            print(imageTemp.toString());
+                                                                            print("File: '${image.path}'");
+                                                                            print(imageTemp.toString());
+                                                                            setState(() => _image =imageTemp);
+                                                                          } on PlatformException catch(e) {
+                                                                            print('Failed to pick image: $e');
+                                                                          }
+                                                                          setState(() {
+                                                                            // edit=!edit;
+                                                                            S_E=!S_E;
+                                                                          });
+                                                                        }
+                                                                        else{
+                                                                          print("permission is not granted");
+                                                                        }}catch(e){print("================$e");}
+                                                                      Navigator.of(context).pop();
+                                                                    },
+                                                                    child: Container(alignment: Alignment.center,
+                                                                      margin:EdgeInsetsDirectional.only(bottom: 8),child:
+                                                                      Column(
+                                                                        children: [
+                                                                          FaIcon(FontAwesomeIcons.camera,size:80,color: Colors.white,),
+                                                                          Text((AppLocalizations.of(context)!.camera),style: TextStyle(color: Colors.white,fontSize: 25),textAlign: TextAlign.center,)
+                                                                        ],
+                                                                      ), )
+                                                                ),
+                                                              ),Expanded(
+                                                                child: InkWell(
+                                                                    onTap:()async{
+                                                                      var status = await Permission.storage.status;
+                                                                      debugPrint("storage permission " + status.toString());
+                                                                      if (await Permission.storage.isDenied) {
+
+                                                                        debugPrint("sorage permission ===" + status.toString());
+
+                                                                        await Permission.storage.request();
+                                                                      } else {
+                                                                        debugPrint("permission storage " + status.toString());
+                                                                        // do something with storage like file picker
+                                                                      }
+                                                                      // //------------------
+                                                                      try{
+                                                                        await _requestPermission(Permission.storage).catchError((e){print("---------$e");
+                                                                        return "===$e";});
+                                                                        if(await _requestPermission(Permission.storage)==true){
+                                                                          print("Permission is granted");
+                                                                          File? image;
+                                                                          try {
+                                                                            final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+                                                                            if(image == null) return;
+                                                                            if(this.mounted){
+                                                                              setState(() { });
+                                                                            }
+                                                                            String str="";
+                                                                            var imageTemp = File(image.path);
+                                                                            setState(() {
+                                                                              str="File: '${image.path}'";
+                                                                              l_test.add(image.path);
+                                                                            });
+                                                                            print(imageTemp.toString());
+                                                                            print("File: '${image.path}'");
+                                                                            print(imageTemp.toString());
+                                                                            setState(() {
+                                                                              // edit=!edit;
+                                                                              S_E=!S_E;
+                                                                            });
+                                                                            setState(() => _image =imageTemp);
+                                                                          } on PlatformException catch(e) {
+                                                                            print('Failed to pick image: $e');
+                                                                          }
+
+                                                                        }
+                                                                        else{
+                                                                          print("permission is not granted");
+                                                                        }}catch(e){print("================$e");}
+                                                                      Navigator.of(context).pop();
+                                                                    },
+                                                                    child: Container(alignment: Alignment.center,margin:EdgeInsetsDirectional.only(bottom: 8),child:
+                                                                    Column(
+                                                                      children: [
+                                                                        FaIcon(FontAwesomeIcons.images,size:80,color: Colors.white,),
+                                                                        Text((AppLocalizations.of(context)!.gallery),style: TextStyle(color: Colors.white,fontSize: 25),textAlign: TextAlign.center,),
+                                                                      ],
+                                                                    ), )
+                                                                ),
+                                                              ),
+
+                                                            ],),
+                                                        ],
+                                                      )],
+                                                  ),
+                                                ]
+                                            ),
+                                          );});
+                                    },focusColor: Colors.red,
+                                      child: Row(
+                                        children: [
+                                          Expanded(child: SizedBox()),
+                                          Container(margin: EdgeInsets.only(right: 0),
+                                          height: 50,padding: EdgeInsets.all(10),alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.black ,width:1),
+                                                color:isPressed?Colors.grey:edit?Color(0xfff4af36):Colors.grey[500],
+                                            borderRadius: D.ln?BorderRadius.only(bottomLeft: Radius.circular(20),topLeft:Radius.circular(20)):
+                                            BorderRadius.only(bottomRight: Radius.circular(20),topRight:Radius.circular(20) )),
+                                          child: Row(
+                                            children: [
+                                              Text((AppLocalizations.of(context)!.upload),style: TextStyle(fontSize:16,fontWeight: FontWeight.bold),),
+                                           FaIcon(FontAwesomeIcons.solidImages,size: 20,)
+                                            ],
+                                          ),),
+                                        ],
+                                      ),),
+                                  ),
+                                ],
+                              ),
+                            ],)
+                          ,l_test.isNotEmpty?
+                  ListView.builder(shrinkWrap: true,physics: ClampingScrollPhysics(),
+                    itemCount: l_test.length,itemBuilder: (context, i) {
+                    var f=File(l_test[i]);
+                     return InkWell(onLongPress:()async{
+                       return  showDialog(context: context, builder:(context) {
+                           return SizedBox(height: 40,width: 200,
+                           child: AlertDialog(insetPadding: EdgeInsets.all(4),contentPadding: EdgeInsets.all(13),shape: OutlineInputBorder(borderSide: BorderSide.none),
+                               backgroundColor: Color(0xff02182E),
+                      title: Text((AppLocalizations.of(context)!.deleteee),textAlign: TextAlign.center,style: TextStyle(color:Colors.white,fontSize: 20,fontWeight: FontWeight.bold),),
+            actions:[
+                          Column(
+                           children:[
+                             Row( mainAxisAlignment: MainAxisAlignment.spaceAround,
+                               children: [
+                  Container(margin:EdgeInsetsDirectional.only(top: 1,end: 5),child: ElevatedButton(style:
+                  ElevatedButton.styleFrom(backgroundColor: Color(0xfff4af36)),
+                onPressed: (){
+                Navigator.pop(context);
+                          },
+                      child:Text((AppLocalizations.of(context)!.cancel),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
+
+            Container( margin:EdgeInsetsDirectional.only(top: 1,end: 5),child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Color(0xfff4af36)),
+                    onPressed: () async{
+                      setState(() {
+                        l_test.removeAt(i);
+                      });
+                      t=(DateTime.now().year.toString())+'/'+(DateTime.now().month.toString())+'/'+(DateTime.now().day.toString());
+                      var res=await sql.update({
+                        "user":"${textuser.text}",
+                        "pass":"${textpass.text}",
+                        "image":"${l_test.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(' ', '')}",
+                        "note":"${textnote.text}",
+                        "time":"${t}",
+                        "Url":"${texturl.text}"
+                      },"id=$id");
+                      print(res);
+                      late BuildContext dialogContext = context;
+                        Timer? timer = Timer(Duration(milliseconds: 3000), (){
+                          Navigator.pop(dialogContext);
+                        });
+                        Navigator.of(context).pop();
+                        return showDialog(
+                            context: context,
+                            builder: (BuildContext context) {dialogContext=context;
+                            return
+                              AlertDialog(insetPadding: EdgeInsets.all(10),contentPadding: EdgeInsets.all(13),
+                                  shape: OutlineInputBorder(borderSide: BorderSide.none),
+                                  backgroundColor: Color(0xfff4af36),
+                                title: Text(
+                                  (AppLocalizations.of(context)!.deleted), textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.bold,
+                                        fontSize:20,
+                                        color: Colors.white),)
+                              );
+                            });
                     },
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.only(left: 10, right: 5),
-                      enabledBorder: InputBorder.none,
-                    )),
-              ),
-            ],
-          ), Divider(height: 7,)
-        ],
-      ),
-    );
-  }
-}
-
-
-
-
-class image_storage extends StatelessWidget {
-  var Id,Url;
-  image_storage({required this.Id,required this.Url,});
-  @override
-  Widget build(BuildContext context) {
-    CollectionReference user1= FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data");
-  return StreamBuilder(
-      stream:user1.snapshots(),
-      builder:  (context, snapshot) {
-        // for(var mess in snapshot.data!.docs){
-        //   final messageget=mess.get("image");
-        //   //final messagew=Text("$messageget");
-        //   image_list.add(messageget);
-        // }
-        // return SizedBox(height:600,
-        //   child:
-        //   InkWell(onLongPress:()async{
-        //     //await user.doc(snapshot.data!.docs[i].id).collection("mess").doc().delete();
-        //   } ,
-        //     child:
-        //     ListView(reverse:false,
-        //         children:
-        //         [Container(margin: EdgeInsets.all(10),
-        //           decoration:
-        //           BoxDecoration(borderRadius:BorderRadiusDirectional.circular(15),color: Colors.teal[700]),
-        //           child: Padding(
-        //             padding: const EdgeInsets.symmetric(horizontal: 0,vertical: 0),
-        //             child: ClipRRect(
-        //                 borderRadius: BorderRadius.circular(8),
-        //                 child:
-        //                 //Text("nenen")
-        //                 Image.network(textimage.text)
-        //             ),
-        //           ),
-        //         ),
-        //     ]
-        //     ),
-        //   ),
-        // );
-        return ListView.builder(
-          itemCount:snapshot?.data?.docs?.length ,shrinkWrap: true,physics: ClampingScrollPhysics(),
-          itemBuilder: (context, i) {
-            DocumentSnapshot data=snapshot!.data!.docs[i];
-            return Container(  margin: EdgeInsets.all(10),
-              decoration:
-              BoxDecoration(borderRadius:BorderRadiusDirectional.circular(15),color: Colors.teal[700]),
-              child: InkWell(
-                onLongPress:()async{
-                 // return showDialog(context: context, builder:(context) {
-                 //    return SizedBox(height: 50,width: 200,
-                 //      child: AlertDialog(
-                 //          shape:UnderlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                 //          title: Text((AppLocalizations.of(context)!.deletee),textAlign: TextAlign.center,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-                 //          actions:[
-                 //            Column(
-                 //              children:[ Text(data['image']),
-                 //                Row( mainAxisAlignment: MainAxisAlignment.spaceAround,
-                 //                  children: [
-                 //                    Container( margin:EdgeInsetsDirectional.only(top: 10,end: 5),child: ElevatedButton(
-                 //                        onPressed: (){
-                 //                          Navigator.pop(context);
-                 //                        },
-                 //                        child:Text((AppLocalizations.of(context)!.cancel),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
-                 //
-                 //                    Container( margin:EdgeInsetsDirectional.only(top: 10,end: 5),child: ElevatedButton(
-                 //                        onPressed: () async{
-                 //                          //
-                 //                          // try{
-                 //                          //   await FirebaseStorage.instance.ref().child("files").delete().then((value) async{
-                 //                          //     await FirebaseFirestore.instance.collection("acc").doc(Id).collection("acc_data").doc("D").
-                 //                          //     update({"user":textuser.text,"pass":textpass.text,"time":t,"note":textnote.text,"image":""});
-                 //                          //    Url="";
-                 //                          //    (context as Element).markNeedsBuild();
-                 //                          //
-                 //                          //   });
-                 //                          //
-                 //                          // }catch(e){
-                 //                          //   print("error: $e");
-                 //                          // }
-                 //                          Navigator.pop(context);
-                 //                        },
-                 //                        child:Text((AppLocalizations.of(context)!.delete),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
-                 //                  ],)],
-                 //            ),
-                 //          ]
-                 //      ),
-                 //    );});
-                  },
-                  child:  Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0,vertical: 0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child:Text(data.id)
-                   // Image.network(data['image'])
+                      child:Text((AppLocalizations.of(context)!.delete),textAlign: TextAlign.center,style: TextStyle(color:Colors.white,fontSize: 20),))),
+                        ],)],
+          ),
+                  ]
+                    ),
+                  );
+                    });},
+                       child: ListView(reverse:false,shrinkWrap: true,physics: ClampingScrollPhysics(),
+                          children:
+                          [Container(margin: EdgeInsets.all(10),
+                            decoration:
+                            BoxDecoration(borderRadius:BorderRadiusDirectional.circular(15),color: Colors.teal[700]),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 0,vertical: 0),
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child:Image.file(f)
+                              ),
+                            ),
+                          ),
+                          ]),
+                     );}
+                  )
+                              :Text(""),
+                        ] ),
                   ),
                 ),
-
-              ),
-            );
-          },
-        );
-      },
-    );
+              ),)
+      );   },);
   }
 }
