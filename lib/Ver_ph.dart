@@ -7,20 +7,16 @@ import 'package:provider/provider.dart';
 import 'package:flutter_shake_animated/flutter_shake_animated.dart';
 import 'package:saving_password/key.dart';
 import 'package:saving_password/passwords.dart';
-import 'package:saving_password/reset.dart';
 import 'package:saving_password/sql.dart';
 import 'dataa.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:provider/provider.dart';
 
-import 'dataa.dart';
 
 class ver_ph extends StatefulWidget {
   var ver_id,gmail,pass,phone;
   final User=FirebaseFirestore.instance.collection("account");
 
   ver_ph({required this.ver_id,required this.phone,}){
-    print(phone);
   }
   @override
   State<ver_ph> createState() => _ver_phState();
@@ -131,7 +127,6 @@ class _ver_phState extends State<ver_ph> {
                                   },
                                   //runs when every textfield is filled
                                   onSubmit: (String verificationCode){
-                                    print(verificationCode);
                                     setState(() {
                                       sms=verificationCode;
                                       D.ch_ver1(verificationCode);
@@ -185,14 +180,10 @@ class _ver_phState extends State<ver_ph> {
                                     onPressed: () async{
                                       var isValid;
                                       try{
-                                        print(D.ver);
-                                        print(widget.ver_id);
                                         PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.ver_id, smsCode:D.ver);
                                         await auth.signInWithCredential(credential).then((value)async{
-                                          print(("doneeeeeeeeeeee"));
                                           _verificationNotifier.add(true);
-                                          var res=await sql.updatetoall({'phone':"${widget.phone}"});
-                                          print(res);
+                                          var res=await sql.updatelock({'phone':"${widget.phone}"});
                                           showDialog( context: context,
                                               builder: (BuildContext context) {dialogContext=context;
                                               return Container(
@@ -226,11 +217,7 @@ class _ver_phState extends State<ver_ph> {
                                     side: BorderSide(),
                                     backgroundColor: Colors.blueGrey),
                                     onPressed:(){
-                                      print(D.ver);
-                                      print(sms);
-                                      // Navigator.of(context).pushNamed("ch_phone");
                                       Navigator.of(context).push(MaterialPageRoute(builder: (context) => verified(),));
-                                      // Navigator.of(context).push(MaterialPageRoute(builder: (context) => reset(ver_id: "ver_id", phone: "phone"),));
                                     },child: Text((AppLocalizations.of(context)!.confirm), style: TextStyle(color: Colors.black, fontSize: 22),)),
                               ),
                             ),

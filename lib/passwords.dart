@@ -3,9 +3,7 @@ import 'dart:async';
 
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_shake_animated/flutter_shake_animated.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -13,15 +11,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:saving_password/add_data.dart';
 import 'package:saving_password/key.dart';
-import 'package:saving_password/lock.dart';
-import 'package:saving_password/reset.dart';
 import 'package:saving_password/sql.dart';
-import 'package:widget_circular_animator/widget_circular_animator.dart';
 import 'acc_data.dart';
 import 'dataa.dart';
-import 'animations/container_transition.dart';
-import 'animations/fade_through_transition.dart';
-import 'animations/shared_axis_transition.dart';
 bool b=true,a=true;
 class passwords extends StatefulWidget {
   var ln;
@@ -50,18 +42,9 @@ class _passwordsState extends State<passwords> {
     if(this.mounted){
       setState(() { });
     }
-    print(res);
   }
   List logo=[];
 
-  // readuser()async{
-  //   var res=await sql.selectuser();
-  //   l_user.addAll(res);
-  //   if(this.mounted){
-  //     setState(() { });
-  //   }
-  //   print(res);
-  // }
   List<Color> colors = [Color(0xff54192d), Color.fromRGBO(246,156,113,1),Color(0xffa642560),Color(0xff80a3c9),Color(0xffC28EB4),
     Color(0xff223c55),Colors.teal,Color(0xff54192d),Color(0xffe9bcb9),Color(0xffC28EB4),Color.fromRGBO(246,156,113,1),
     Color(0xff80a3c9),Color(0xffa642560),Color(0xff223c55), Color(0xfff4af36),Color(0xff54192d),Color(0xffe9bcb9),Color(0xffC28EB4),Color.fromRGBO(246,156,113,1),
@@ -152,24 +135,13 @@ class _passwordsState extends State<passwords> {
                       )
                     ],
                     title:
-                    ShaderMask(
-                      shaderCallback: (bounds) => LinearGradient(
-                        colors: [Color(0xfff4af36),Colors.deepOrange,Color(0xff54192d), Color.fromRGBO(246,156,113,1),Color(0xffa642560),Color(0xff80a3c9),Colors.deepOrange,Color(0xfff4af36)],
-                      ).createShader(bounds),
-                      child: Text(AppLocalizations.of(context)!.passwords,textAlign: TextAlign.center,style: TextStyle(fontSize:35,fontFamily: "DMSerifDisplay-Italic")
-              ))),
+                    Text(AppLocalizations.of(context)!.passwords,textAlign: TextAlign.center,style: TextStyle(color:Colors.white,fontSize:35,fontFamily: "DMSerifDisplay-Italic")
+              )),
                   floatingActionButton:
-                  // FloatingActionButton(onPressed: (){
-                  //   print(l_pass);
-                  //   print(l_pass.isEmpty);
-                  //   print(l_user);
-                  // }),
                   !b?null: OpenContainer(
                     transitionType: ContainerTransitionType.fadeThrough,
                     openBuilder: (BuildContext context, VoidCallback _) {
-                      // return lock();
                       return add_data(ln: D.ln);
-                      // return reset(ver_id: "ver_id", phone: "phone");
                     },
                     closedElevation: 6.0,
                     closedShape: const RoundedRectangleBorder(
@@ -204,7 +176,7 @@ class _passwordsState extends State<passwords> {
                           // ),
               child:ListView(children: [
               l_pass.isEmpty?
-              SizedBox(height:MediaQuery.of(context).size.height,
+              SizedBox(height:MediaQuery.of(context).size.height-20,
                 child: Column(children: [
                         SizedBox(height: 150,),
 
@@ -259,7 +231,7 @@ class _passwordsState extends State<passwords> {
                                      closedShape: const RoundedRectangleBorder(),
                                      closedBuilder: (BuildContext _, VoidCallback openContainer) {
                                        return SingleChildScrollView(
-                                         child: Container( margin: EdgeInsets.all(6),height: 70,
+                                         child: Container( margin: EdgeInsets.fromLTRB(10,5,10,5),
                                               decoration:
                                               BoxDecoration(borderRadius:BorderRadiusDirectional.circular(25),color:colors[i]),
                                            child: ListTile(
@@ -293,14 +265,15 @@ class _passwordsState extends State<passwords> {
                             closedShape: const RoundedRectangleBorder(),
                             closedBuilder: (BuildContext _, VoidCallback openContainer) {
                               return SingleChildScrollView(
-                                child: Container( margin: EdgeInsets.all(6),height: 70,
+                                child: Container(
+                                  margin: EdgeInsets.all(12),
                                   decoration:
                                   BoxDecoration(borderRadius:BorderRadiusDirectional.circular(25),color:colors[i]),
                                   child: ListTile(
                                       onTap:openContainer,
                                       leading:Image.asset(matchQuery[i]['logo'],fit:BoxFit.cover,height:60,),title:Padding(
                                     padding: const EdgeInsets.only(top:4),
-                                    child: Text(matchQuery[i]['acc'].toString(),style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.bold),),
+                                    child: Text(matchQuery[i]['acc'].toString(),style: TextStyle(color: Colors.white,fontSize:22,fontWeight: FontWeight.bold),),
                                   ),
                                       subtitle: Text(matchQuery[i]['user'].toString(),style: TextStyle(color: Colors.white),),
                                       // Expanded(child: Padding(padding: EdgeInsetsDirectional.all(10)))
@@ -358,7 +331,7 @@ class _deleteState extends State<delete> {
                                 // Navigator.pop(context);
                                 Fluttertoast.showToast(msg: 'Press back again to exit');
                               },
-                              child:Text((AppLocalizations.of(context)!.cancel),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
+                              child:Text((AppLocalizations.of(context)!.cancel),textAlign: TextAlign.center,style: TextStyle(color: Colors.white,fontSize: 20),))),
 
 
                           Container( margin:EdgeInsetsDirectional.only(top: 1,end: 5),child: ElevatedButton(
@@ -366,11 +339,10 @@ class _deleteState extends State<delete> {
                               onPressed: () async{
                                 setState(() {
                                   var res=sql.delete(widget.id);
-                                  print(res);
                                 });
                                 Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => passwords(ln:widget.ln),));
                               },
-                              child:Text((AppLocalizations.of(context)!.delete),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
+                              child:Text((AppLocalizations.of(context)!.delete),textAlign: TextAlign.center,style: TextStyle(color: Colors.white,fontSize: 20),))),
                         ],)],
                   ),
                 ]
@@ -469,106 +441,9 @@ class CustomSearchDelegate extends SearchDelegate {
   }
 }
 
-const String _loremIpsumParagraph =
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod '
-    'tempor incididunt ut labore et dolore magna aliqua. Vulputate dignissim '
-    'suspendisse in est. Ut ornare lectus sit amet. Eget nunc lobortis mattis '
-    'aliquam faucibus purus in. Hendrerit gravida rutrum quisque non tellus '
-    'orci ac auctor. Mattis aliquam faucibus purus in massa. Tellus rutrum '
-    'tellus pellentesque eu tincidunt tortor. Nunc eget lorem dolor sed. Nulla '
-    'at volutpat diam ut venenatis tellus in metus. Tellus cras adipiscing enim '
-    'eu turpis. Pretium fusce id velit ut tortor. Adipiscing enim eu turpis '
-    'egestas pretium. Quis varius quam quisque id. Blandit aliquam etiam erat '
-    'velit scelerisque. In nisl nisi scelerisque eu. Semper risus in hendrerit '
-    'gravida rutrum quisque. Suspendisse in est ante in nibh mauris cursus '
-    'mattis molestie. Adipiscing elit duis tristique sollicitudin nibh sit '
-    'amet commodo nulla. Pretium viverra suspendisse potenti nullam ac tortor '
-    'vitae.\n'
-    '\n'
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod '
-    'tempor incididunt ut labore et dolore magna aliqua. Vulputate dignissim '
-    'suspendisse in est. Ut ornare lectus sit amet. Eget nunc lobortis mattis '
-    'aliquam faucibus purus in. Hendrerit gravida rutrum quisque non tellus '
-    'orci ac auctor. Mattis aliquam faucibus purus in massa. Tellus rutrum '
-    'tellus pellentesque eu tincidunt tortor. Nunc eget lorem dolor sed. Nulla '
-    'at volutpat diam ut venenatis tellus in metus. Tellus cras adipiscing enim '
-    'eu turpis. Pretium fusce id velit ut tortor. Adipiscing enim eu turpis '
-    'egestas pretium. Quis varius quam quisque id. Blandit aliquam etiam erat '
-    'velit scelerisque. In nisl nisi scelerisque eu. Semper risus in hendrerit '
-    'gravida rutrum quisque. Suspendisse in est ante in nibh mauris cursus '
-    'mattis molestie. Adipiscing elit duis tristique sollicitudin nibh sit '
-    'amet commodo nulla. Pretium viverra suspendisse potenti nullam ac tortor '
-    'vitae';
 
 const double _fabDimension = 56.0;
-class _DetailsPage extends StatelessWidget {
-  const _DetailsPage({this.includeMarkAsDoneButton = true});
 
-  final bool includeMarkAsDoneButton;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Details page'),
-        actions: <Widget>[
-          if (includeMarkAsDoneButton)
-            IconButton(
-              icon: const Icon(Icons.done),
-              onPressed: () => Navigator.pop(context, true),
-              tooltip: 'Mark as done',
-            )
-        ],
-      ),
-      body: ListView(
-        children: <Widget>[
-          Container(
-            color: Colors.black38,
-            height: 250,
-            child: Padding(
-              padding: const EdgeInsets.all(70.0),
-              child: Image.asset(
-                'assets/placeholder_image.png',
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Title',
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .headlineSmall!
-                      .copyWith(
-                    color: Colors.black54,
-                    fontSize: 30.0,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  _loremIpsumParagraph,
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .bodyMedium!
-                      .copyWith(
-                    color: Colors.black54,
-                    height: 1.5,
-                    fontSize: 16.0,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 class _OpenContainerWrapper extends StatelessWidget {
   const _OpenContainerWrapper({
     required this.closedBuilder,

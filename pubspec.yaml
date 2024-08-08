@@ -68,12 +68,13 @@ dependencies:
   intl: any
   rxdart: ^0.27.7
   animations: ^2.0.8
-  fluttertoast: ^8.2.2
+  fluttertoast: ^8.2.5
   toast: ^0.3.0
   widget_circular_animator: ^1.0.0
   loading_animation_widget: ^1.2.0+4
 
 
+  path: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

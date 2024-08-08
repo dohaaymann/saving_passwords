@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:passcode_screen/circle.dart';
 import 'package:passcode_screen/keyboard.dart';
@@ -10,10 +11,10 @@ import 'package:provider/provider.dart';
 import 'package:saving_password/ch_phone.dart';
 import 'package:saving_password/passwords.dart';
 import 'package:saving_password/sql.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'Ver_ph.dart';
 import 'dataa.dart';
+import 'main.dart';
 var enteredpass="";
 var storedpass="";
 class key extends StatefulWidget {
@@ -44,32 +45,26 @@ class _keyState extends State<key> {
     for (final e in y.entries) {
       setState(() {
         storedpass=e.value.toString();});
-    }  print(phonenum);
-    print(storedpass);
+    }
   }
   void initState() {
-
     selectphone();
     selectstored();
     super.initState();
   }
+  var wait=false;
   Widget build(BuildContext context) {
     var D=Provider.of<dataa>(context);
-    return phonenum.length==0?Scaffold(resizeToAvoidBottomInset:false,
+    return phonenum.length<2?Scaffold(resizeToAvoidBottomInset:false,
       backgroundColor:Color(0xff02182E),
-      appBar: AppBar(elevation: 0,backgroundColor:Color(0xff02172C),),
+      appBar: AppBar(elevation: 0,backgroundColor:Color(0xff02182E),
+        automaticallyImplyLeading: false,
+        leading: IconButton(onPressed: (){Navigator.of(context).push(MaterialPageRoute(builder: (context) => passwords(ln: ln),));}, icon:Icon(Icons.arrow_back,size: 30,color: Colors.white,)),),
       body:Container(width: double.infinity,height: double.infinity, decoration: BoxDecoration(
         gradient:LinearGradient(
             begin: Alignment.bottomCenter,end: Alignment.topCenter,
             colors: [Colors.black,Color(0xff02182E),]),
       ),
-        // decoration:
-        // BoxDecoration(
-        //   image: DecorationImage(
-        //     image: AssetImage("pic/mix2.jpeg"),
-        //     fit: BoxFit.cover,colorFilter: ColorFilter.mode(Colors.black12, BlendMode.color),
-        //   ),
-        // ),
         child: SingleChildScrollView(padding: EdgeInsets.only( bottom: MediaQuery.of(context).viewInsets.bottom),
           child: Column(children: [
             Padding(
@@ -100,29 +95,23 @@ class _keyState extends State<key> {
                   initialCountryCode: 'EG',
                   onChanged: (phone) {
                     D.ch_ph(phone.completeNumber);
-                    print("------------${phone.completeNumber}");
                   },
                 ),
               ),
             ),
             _phone.text.length==10?ElevatedButton(onPressed: ()async{
-              print(_phone.text);
               late BuildContext dialogContext = context;
               late BuildContext sdialogContext = context;
               late BuildContext cdialogContext = context;
               try {
-                print("--------------------+20${_phone.text}");
                 await FirebaseAuth.instance.verifyPhoneNumber(
                   phoneNumber: "+20${_phone.text}",
                   verificationCompleted:(PhoneAuthCredential credential) async {print("done");},
                   verificationFailed: (FirebaseAuthException e) {
                     Timer? timer = Timer(Duration(milliseconds: 3000), (){
-                      print("//////////////////////////////////////////////////////");
                       Navigator.pop(dialogContext);
                     });
-                    print(("//////////////////$e"));
                     showDialog(
-                      //
                         context: context,
                         builder: (BuildContext context) {dialogContext = context;
                         return AlertDialog(
@@ -158,14 +147,12 @@ class _keyState extends State<key> {
                         ),
                       ));
                     });
-                    print("==============================${D.ph}");
 
                   },
                   codeAutoRetrievalTimeout: (String verificationId) {},
                 )
                     .catchError((err) {
                   Timer? timer = Timer(Duration(milliseconds: 3000), (){
-                    print("//////////////////////////////////////////////////////");
                     Navigator.pop(dialogContext);
                   });
                   return showDialog(
@@ -190,8 +177,7 @@ class _keyState extends State<key> {
                       });
                 });
               } catch (e) {
-                print("%%%%%%%%%%%%%%5$e");
-                print(D.ph);
+
               }},
               child:Text((AppLocalizations.of(context)!.verify),style: TextStyle(color: Colors.black,fontSize: 22,fontWeight: FontWeight.bold),),style:
               ElevatedButton.styleFrom(shape: StadiumBorder(),
@@ -200,15 +186,7 @@ class _keyState extends State<key> {
                   backgroundColor:Color(0xfff8c520)
               ),
             ):ElevatedButton(onPressed:
-                (){print(D.ph);
-            // print(_phone.text);
-            //  Container( color:Colors.black45,height:double.infinity,child: Center(child:
-            // SizedBox(height:50,width:50,child: CircularProgressIndicator(color: Colors.white,strokeWidth:7,))));
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => ver_ph(
-                ver_id: "verificationId.toString()",
-                phone:"+20${D.ph}",
-              ), ));
+                (){
              }
               , child:Text((AppLocalizations.of(context)!.verify),style: TextStyle(fontSize: 22),),style:
               ElevatedButton.styleFrom(shape: StadiumBorder(),
@@ -262,8 +240,6 @@ var l;
             passwordEnteredCallback:(String enteredPasscode) {setState(() {
               enteredpass=enteredPasscode;
             });
-              print(enteredpass);
-              print(enteredPasscode);
               Navigator.pop(context);
             _showLockScreenverify(
               context,
@@ -309,16 +285,25 @@ var l;
             circleUIConfig: circleUIConfig,
             keyboardUIConfig: keyboardUIConfig,
             passwordEnteredCallback:(String enteredPasscode)async {
-              bool isValid =enteredpass.toString()==enteredPasscode.toString();
+              // enteredpass.toString()==enteredPasscode.toString()?
+              bool isValid;
+              enteredpass.toString()==enteredPasscode.toString()?isValid=true:isValid=false;
               if(isValid)
               { 
-                var res=await sql.updatetoall({"stored":"$enteredPasscode"});
-                print(res);
+                var res=await sql.updatelock({"stored":"$enteredPasscode"});
                 Navigator.of(context).pop();
-                print("Validdddddddddddd");
+                Fluttertoast.showToast(
+                    msg: "Passcode added successfully",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.CENTER,
+                    timeInSecForIosWeb: 1,
+                    backgroundColor:Color(0xfff4af36),
+                    textColor: Colors.white,
+                    fontSize: 16.0
+                );
                 Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) =>
-                        passwords(ln:l)
+                        passwords(ln:ln)
                     ));
                 setState(() {
                   this.isAuthenticated = true;
@@ -367,9 +352,7 @@ var l;
             passwordEnteredCallback:(String enteredPasscode) async{
               setState(() {
               storedpass=enteredPasscode;
-            }); var res=await sql.updatetoall({"stored":"$enteredPasscode"});
-              print(res);
-              print("done");
+            }); var res=await sql.updatelock({"stored":"$enteredPasscode"});
               Navigator.of(context).pop();
             },
             cancelButton: cancelButton,
@@ -386,7 +369,8 @@ var l;
             // bottomWidget: _passcodeRestoreButton(),
           ),
         ));
-  } _showLockScreenpass(BuildContext context,
+  }
+  _showLockScreenpass(BuildContext context,
       {required bool opaque,required String te,
         required CircleUIConfig circleUIConfig,
         required KeyboardUIConfig keyboardUIConfig,
@@ -478,18 +462,24 @@ var l;
                                        onPressed: (){
                                          Navigator.pop(context);
                                        },
-                                       child:Text((AppLocalizations.of(context)!.cancel),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
+                                       child:Text((AppLocalizations.of(context)!.cancel),textAlign: TextAlign.center,style: TextStyle(
+                                           fontSize: 20,color: Colors.white),))),
                                    Container( margin:EdgeInsetsDirectional.only(top: 1,end: 5),child: ElevatedButton(
                                        style: ElevatedButton.styleFrom(backgroundColor: Color(0xfff4af36)),
                                        onPressed: () async{
-                                         setState(() async {
-                                         var res=await sql.updatetoall({'stored':''});
-                                         // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Key(),));
-                                         print(res);
-                                         });
-
+                                         var res=await sql.updatelock({'stored':''});
+                                         Fluttertoast.showToast(
+                                             msg: "Passcode removed successfully",
+                                             toastLength: Toast.LENGTH_SHORT,
+                                             gravity: ToastGravity.CENTER,
+                                             timeInSecForIosWeb: 1,
+                                             backgroundColor:Color(0xfff4af36),
+                                             textColor: Colors.white,
+                                             fontSize: 16.0
+                                         );
+                                         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => key(),));
                                        },
-                                       child:Text((AppLocalizations.of(context)!.remove),textAlign: TextAlign.center,style: TextStyle(fontSize: 20),))),
+                                       child:Text((AppLocalizations.of(context)!.remove),textAlign: TextAlign.center,style: TextStyle(color: Colors.white,fontSize: 20),))),
                                  ],)],
                            ),
                          ]
@@ -502,8 +492,6 @@ var l;
                    side: BorderSide(),
                    backgroundColor:Color(0xfff8c520))):
                ElevatedButton(onPressed: (){
-                 print(storedpass);
-                 print(enteredpass);
                  _showLockScreenset(
                    context,
                    opaque: false,
@@ -515,6 +503,7 @@ var l;
                  );
 
                }, child:Text((AppLocalizations.of(context)!.addpass),style: TextStyle(color:Colors.black,fontWeight:FontWeight.bold,fontSize: 22),),style:
+
                ElevatedButton.styleFrom(shape: StadiumBorder(),
                    fixedSize: Size(300, 50),
                    side: BorderSide(),
@@ -523,8 +512,6 @@ var l;
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: storedpass.length==5?ElevatedButton(onPressed: (){
-                    print(storedpass);
-                    print(enteredpass);
                     _showLockScreenpass(
                       context,te: (AppLocalizations.of(context)!.enter_o_pass),
                       opaque: false,
@@ -546,8 +533,6 @@ var l;
                   backgroundColor: Colors.white70,)),),
 
                 ElevatedButton(onPressed: (){
-                 print(storedpass);
-                 print(enteredpass);
                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ch_phone(),));
                 }, child:Text((AppLocalizations.of(context)!.ch_ph),style: TextStyle(color:Colors.black,fontWeight:FontWeight.bold,fontSize: 22),),style:
                ElevatedButton.styleFrom(shape: StadiumBorder(),

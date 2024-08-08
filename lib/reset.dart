@@ -16,7 +16,6 @@ class reset extends StatefulWidget {
   var ver_id,phone;
 
   reset({required this.ver_id,required this.phone,}){
-    print(phone);
   }
 
   @override
@@ -70,10 +69,8 @@ class _resetState extends State<reset> {
                 bool isValid =enteredpass.toString()==enteredPasscode.toString();
                 if(isValid)
                 {
-                  var res=await sql.updatetoall({"stored":"$enteredPasscode"});
-                  print(res);
+                  var res=await sql.updatelock({"stored":"$enteredPasscode"});
                   Navigator.of(context).pop();
-                  print("Validdddddddddddd");
                   Navigator.of(context).push(MaterialPageRoute(builder: (context) =>passwords(ln:l)));
                   setState(() {
                     this.isAuthenticated = true;
@@ -121,8 +118,6 @@ class _resetState extends State<reset> {
               passwordEnteredCallback:(String enteredPasscode) {setState(() {
                 enteredpass=enteredPasscode;
               });
-              print(enteredpass);
-              print(enteredPasscode);
               Navigator.pop(context);
                _showLockScreenverify(
                 context,
@@ -146,8 +141,7 @@ class _resetState extends State<reset> {
               digits: digits,
               passwordDigits:5,
               bottomWidget: ElevatedButton(onPressed: ()async{
-                var res=await sql.updatetoall({'stored':""});
-                print(res);
+                var res=await sql.updatelock({'stored':""});
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => passwords(ln:l),));
               },child: Text((AppLocalizations.of(context)!.removeLock)),),
             ),
@@ -217,7 +211,6 @@ class _resetState extends State<reset> {
                         borderWidth: 4.0,
                         onCodeChanged: (String code) {
                           D.ch_ver1(code);
-                          print("____________________$code");
                         },
                         //runs when every textfield is filled
                         onSubmit: (String verificationCode) async {
@@ -237,10 +230,7 @@ class _resetState extends State<reset> {
                           try{
                             PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: widget.ver_id, smsCode:smsCode);
                            await auth.signInWithCredential(credential).then((value)async{
-                              // var res=await sql.update({'phone':"$phone"},"id=1");
-                              // print(res);verified
-
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => passwords(ln: D.ln),)).then((value){
+                                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => passwords(ln: D.ln),)).then((value){
                                 _showLockScreenset(
                                   context,
                                   opaque: false,
@@ -253,7 +243,6 @@ class _resetState extends State<reset> {
                               });
 
                           }catch(e){
-                            print("+++++++++++++++++++++++++++++++++++++++");
                             D.ch_ver1(0);
                             Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) =>
                                 reset(ver_id: widget.ver_id, phone: widget.phone),));

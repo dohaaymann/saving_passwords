@@ -1,21 +1,16 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:saving_password/passwords.dart';
 import 'package:saving_password/sql.dart';
-import 'animations/fade_through_transition.dart';
 import 'dataa.dart';
+import 'main.dart';
 class add_data extends StatefulWidget {
   bool ln;
   add_data({required this.ln}){
-    print("**********");
-    print(ln);
   }
   @override
   State<add_data> createState() => _add_dataState();
@@ -36,7 +31,9 @@ class _add_dataState extends State<add_data> {
         child: Consumer<dataa>(builder: (context,D, child) {
           return  Scaffold(resizeToAvoidBottomInset: true,
             appBar: AppBar(backgroundColor: Color(0xff02182E),elevation: 0,
-              title: Text((AppLocalizations.of(context)!.neww),style: TextStyle(fontSize:22,fontWeight: FontWeight.bold),),
+                automaticallyImplyLeading: false,
+                leading: IconButton(onPressed: (){Navigator.of(context).push(MaterialPageRoute(builder: (context) => passwords(ln: ln),));}, icon:Icon(Icons.arrow_back,size: 30,color: Colors.white,)),
+              title: Text((AppLocalizations.of(context)!.neww),style: TextStyle(color:Colors.white,fontSize:22,fontWeight: FontWeight.bold),),
               actions: [
                 (textuser.text.isNotEmpty&&textapp.text.isNotEmpty)?InkWell(onTap: ()async{ var logo='pic/logo/lock.png';
                     if(textapp.text=='Facebook'||textapp.text=='facebook'||textapp.text=='face'||textapp.text=="فيسبوك"||textapp.text=="فيس"){
@@ -63,7 +60,6 @@ class _add_dataState extends State<add_data> {
                     }
                   var t=(DateTime.now().year.toString())+'/'+(DateTime.now().month.toString())+'/'+(DateTime.now().day.toString());
                   var res=await sql.insert(textapp.text, textuser.text, textpass.text,textnote.text,texturl.text,logo);
-                  print(res);
                   late BuildContext dialogContext = context;
                   if(res>0){
                     Timer? timer = Timer(Duration(milliseconds: 3000), (){
@@ -213,8 +209,6 @@ class _add_dataState extends State<add_data> {
                           TextFormField( onTapOutside: (v){FocusManager.instance.primaryFocus?.unfocus();},controller: texturl,
                               decoration:InputDecoration(floatingLabelBehavior: FloatingLabelBehavior.never,
                                   suffixIcon:IconButton(onPressed:(){
-                                    print(textapp.text.isEmpty);
-                                    print(textuser.text.isEmpty);
                                   }, icon:FaIcon(FontAwesomeIcons.chrome)),
                                   border: OutlineInputBorder(borderRadius:BorderRadius.circular(10)),
                                   label: Text("example.com",style: TextStyle(fontSize:19)),disabledBorder:InputBorder.none

@@ -3,8 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:passcode_screen/circle.dart';
 import 'package:passcode_screen/keyboard.dart';
 import 'package:passcode_screen/passcode_screen.dart';
@@ -80,8 +79,6 @@ class MyApp extends StatefulWidget  with WidgetsBindingObserver{
               keyboardUIConfig: keyboardUIConfig,
               passwordEnteredCallback:(String enteredPasscode) {
                 bool isValid=storedpass.toString()==enteredPasscode.toString();
-                print(storedpass.toString());
-                print(enteredPasscode.toString());
                 if(isValid){
                   Navigator.of(context).pop();
                   var D=Provider.of<dataa>(Context!);
@@ -150,28 +147,25 @@ class MyApp extends StatefulWidget  with WidgetsBindingObserver{
           ),
           content: Text(
             (AppLocalizations.of(context)!.passreset),
-            style: const TextStyle(fontSize:18,color: Colors.black87),
+            style: const TextStyle(fontSize:18,color:Colors.white),
           ),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(style: ElevatedButton.styleFrom(shape:StadiumBorder(),backgroundColor: Color.fromRGBO(0,25,52,1)),
               child: Text(
                 (AppLocalizations.of(context)!.cancel),
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(color:Colors.white,fontSize: 18),
               ),
               onPressed: () {
               Navigator.of(context).pop(dialogContext);
-              // Navigator.of(context).pushNamed("MyHomePage");
-              //   print("object");
               },
             ),
             ElevatedButton(style: ElevatedButton.styleFrom(shape:StadiumBorder(),backgroundColor:Color.fromRGBO(0,25,52,1)),
               child: Text(
                 (AppLocalizations.of(context)!.proceed),
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18,color:Colors.white,),
             ),
               onPressed:()async{
-                print("----------------------");
                 late BuildContext dialogContext = context;
                 late BuildContext sdialogContext = context;
                 late BuildContext cdialogContext = context;
@@ -182,10 +176,8 @@ class MyApp extends StatefulWidget  with WidgetsBindingObserver{
                     verificationCompleted:(PhoneAuthCredential credential) async {print("done");},
                     verificationFailed: (FirebaseAuthException e) {
                       Timer? timer = Timer(Duration(milliseconds: 3000), (){
-                        print("//////////////////////////////////////////////////////");
                         Navigator.pop(dialogContext);
                       });
-                      print(("//////////////////$e"));
                       showDialog(
                         //
                           context: context,
@@ -227,7 +219,6 @@ class MyApp extends StatefulWidget  with WidgetsBindingObserver{
                   )
                       .catchError((err) {
                     Timer? timer = Timer(Duration(milliseconds: 3000), (){
-                      print("//////////////////////////////////////////////////////");
                       Navigator.pop(dialogContext);
                     });
                     return showDialog(
@@ -252,7 +243,15 @@ class MyApp extends StatefulWidget  with WidgetsBindingObserver{
                         });
                   });
                 } catch (e) {
-                  print("%%%%%%%%%%%%%%5$e");}
+                  Fluttertoast.showToast(
+                      msg: "$e",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor:Color(0xfff4af36),
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );}
               },
             ),
           ],
@@ -265,7 +264,6 @@ class MyApp extends StatefulWidget  with WidgetsBindingObserver{
       if (state == AppLifecycleState.resumed) {
         var D=Provider.of<dataa>(Context!,listen: false);;
         D.ch_lock(true);
-        print("1");
         storedpass.length>0?
         _showLockScreenpass(d:true,
           Context!,
@@ -276,9 +274,6 @@ class MyApp extends StatefulWidget  with WidgetsBindingObserver{
             semanticsLabel: (AppLocalizations.of(Context!)!.cancel),
           ), circleUIConfig:CircleUIConfig(), keyboardUIConfig:KeyboardUIConfig(), digits: [],) :null;
       }
-    // if (state == AppLifecycleState.resumed) {
-    //   print("resumed");
-    // }
     else  if (state == AppLifecycleState.paused) {
       print("paused");
     }
@@ -327,7 +322,6 @@ class _MyAppState extends State<MyApp> {
               routes: {
                 "passwords":(context)=>passwords(ln:ln),
                 "add_data":(context) =>add_data (ln:ln),
-                "lock":(context) =>lock(),
                 "reset":(context) =>reset(phone: "",ver_id: ""),
                 "key":(context) =>key(),
                 "verified":(context) =>verified(),
@@ -363,7 +357,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final StreamController<bool> _verificationNotifier = StreamController<bool>.broadcast();
   bool isAuthenticated = false;
   selectstored()async{
-    print("done");
     var res=await sql.selectstored();
     var y=res.toList().first;
     for (final e in y.entries) {
@@ -385,7 +378,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   readdata()async{
     var re=await sql.initialdb();
-    print(re);
   }
   void initState() {
     // TODO: implement initState
@@ -393,7 +385,6 @@ class _MyHomePageState extends State<MyHomePage> {
     readdata();
     selectphone();
     selectstored();
-    print("1");
     super.initState();
   }
   CollectionReference user=FirebaseFirestore.instance.collection("$xlxx");
@@ -421,8 +412,6 @@ class _MyHomePageState extends State<MyHomePage> {
             keyboardUIConfig: keyboardUIConfig,
             passwordEnteredCallback:(String enteredPasscode) {
               bool isValid=storedpass.toString()==enteredPasscode.toString();
-              print(storedpass.toString());
-              print(enteredPasscode.toString());
               if(isValid){
                 Navigator.of(context).pop();
                 Navigator.of(context).push(
@@ -497,7 +486,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(style: ElevatedButton.styleFrom(shape:StadiumBorder(),backgroundColor: Color.fromRGBO(0,25,52,1)),
               child: Text(
         (AppLocalizations.of(context)!.cancel),
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18,color: Colors.white),
               ),
               onPressed: () {
                 Navigator.maybePop(context);
@@ -506,10 +495,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(style: ElevatedButton.styleFrom(shape:StadiumBorder(),backgroundColor:Color.fromRGBO(0,25,52,1)),
               child: Text(
                 (AppLocalizations.of(context)!.proceed),
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18,color: Colors.white),
               ),
               onPressed:()async{
-                print("----------------------");
                 late BuildContext dialogContext = context;
         late BuildContext sdialogContext = context;
         late BuildContext cdialogContext = context;
@@ -520,10 +508,8 @@ class _MyHomePageState extends State<MyHomePage> {
         verificationCompleted:(PhoneAuthCredential credential) async {print("done");},
         verificationFailed: (FirebaseAuthException e) {
         Timer? timer = Timer(Duration(milliseconds: 3000), (){
-        print("//////////////////////////////////////////////////////");
         Navigator.pop(dialogContext);
         });
-        print(("//////////////////$e"));
         showDialog(
         //
         context: context,
@@ -565,7 +551,6 @@ class _MyHomePageState extends State<MyHomePage> {
         )
             .catchError((err) {
         Timer? timer = Timer(Duration(milliseconds: 3000), (){
-        print("//////////////////////////////////////////////////////");
         Navigator.pop(dialogContext);
         });
         return showDialog(
@@ -590,7 +575,15 @@ class _MyHomePageState extends State<MyHomePage> {
         });
         });
         } catch (e) {
-        print("%%%%%%%%%%%%%%5$e");}
+          Fluttertoast.showToast(
+              msg: "$e",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 1,
+              backgroundColor:Color(0xfff4af36),
+              textColor: Colors.white,
+              fontSize: 16.0
+          );}
               },
             ),
           ],
@@ -649,7 +642,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 var e='en';
                                                 x=e.toString();
                                                 _locale=Locale(e.toString());
-                                                print(_locale);
 
                                                 MyApp.setLocale(context,Locale(e.toString()));
                                                 D.ch_lan(e.toString());
@@ -669,7 +661,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                                 var e='ar';
                                                 x=e.toString();
                                                 _locale=Locale(e.toString());
-                                                print(_locale);
 
                                                 MyApp.setLocale(context,Locale(e.toString()));
                                                 D.ch_lan(e.toString());
@@ -693,11 +684,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           borderRadius: BorderRadius.circular(100)),
                       child:
                       IconButton(onPressed: () async{
-                        print(_locale); print(language);
-                        print(D.ln);
                         selectstored();
                         selectphone();
-                        // var L = Localizations.localeOf(context);
                         storedpass.length>0?
                         _showLockScreenpass(d:D.ln,
                           context,

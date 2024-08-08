@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +29,10 @@ class _ch_phoneState extends State<ch_phone> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(backgroundColor: Colors.transparent,elevation:0),
+        appBar: AppBar(backgroundColor: Colors.transparent,elevation:0,
+          automaticallyImplyLeading: false,
+          leading: IconButton(onPressed: (){Navigator.of(context).pop();}, icon:Icon(Icons.arrow_back,size: 30,color: Colors.white,)),),
+
         body: Consumer<dataa>(builder:(context,D, child) {
          return SingleChildScrollView(
            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +59,7 @@ class _ch_phoneState extends State<ch_phone> {
                 padding: const EdgeInsets.all(8.0),
                 child: Container(height: 80,
                   child: IntlPhoneField(style: TextStyle(color: Colors.white,fontSize:18),
-                    controller: _phone,initialValue: auth.currentUser?.phoneNumber,
+                    controller: _phone,
                     decoration: InputDecoration(focusColor: Colors.yellow,
                       fillColor: Colors.white,labelStyle: TextStyle(color: Colors.white),
                       labelText: (AppLocalizations.of(context)!.phonenum),counterStyle: TextStyle(color: Colors.white),prefixStyle: TextStyle(color: Colors.white),
@@ -66,31 +70,26 @@ class _ch_phoneState extends State<ch_phone> {
                     ),
                     initialCountryCode: 'EG',
                     onChanged: (phone) {
-                      // D.ch_ph(phone.completeNumber);
-                      print("------------${phone.completeNumber}");
+                      setState(() {
+                      });
                     },
                   ),
                 ),
               ),
               _phone.text.length==10?Align(alignment:Alignment.center,
                 child: ElevatedButton(onPressed: ()async{
-                  print(_phone.text);
                   late BuildContext dialogContext = context;
                   late BuildContext sdialogContext = context;
                   late BuildContext cdialogContext = context;
                   try {
-                    print("--------------------+20${_phone.text}");
                     await FirebaseAuth.instance.verifyPhoneNumber(
                       phoneNumber: "+20${_phone.text}",
                       verificationCompleted:(PhoneAuthCredential credential) async {print("done");},
                       verificationFailed: (FirebaseAuthException e) {
                         Timer? timer = Timer(Duration(milliseconds: 3000), (){
-                          print("//////////////////////////////////////////////////////");
                           Navigator.pop(dialogContext);
                         });
-                        print(("//////////////////$e"));
                         showDialog(
-                          //
                             context: context,
                             builder: (BuildContext context) {dialogContext = context;
                             return AlertDialog(
@@ -125,15 +124,11 @@ class _ch_phoneState extends State<ch_phone> {
                               phone:"+20${_phone.text}",
                             ),
                           ));
-                        });
-                        print("==============================${D.ph}");
-
-                      },
+                        }); },
                       codeAutoRetrievalTimeout: (String verificationId) {},
                     )
                         .catchError((err) {
                       Timer? timer = Timer(Duration(milliseconds: 3000), (){
-                        print("//////////////////////////////////////////////////////");
                         Navigator.pop(dialogContext);
                       });
                       return showDialog(
@@ -158,8 +153,15 @@ class _ch_phoneState extends State<ch_phone> {
                           });
                     });
                   } catch (e) {
-                    print("%%%%%%%%%%%%%%5$e");
-                    print(D.ph);
+                    Fluttertoast.showToast(
+                        msg: "$e",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.CENTER,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor:Color(0xfff4af36),
+                        textColor: Colors.white,
+                        fontSize: 16.0
+                    );
                   }},
                   child:Text((AppLocalizations.of(context)!.verify),style: TextStyle(color: Colors.black,fontSize: 22,fontWeight: FontWeight.bold),),style:
                   ElevatedButton.styleFrom(shape: StadiumBorder(),
@@ -170,16 +172,7 @@ class _ch_phoneState extends State<ch_phone> {
                 ),
               ):Align(alignment: Alignment.center,
                 child: ElevatedButton(onPressed:
-                    (){print(D.ph);
-                  print(_phone.text);
-                  // print(_phone.text);
-                //  Container( color:Colors.black45,height:double.infinity,child: Center(child:
-                // // SizedBox(height:50,width:50,child: CircularProgressIndicator(color: Colors.white,strokeWidth:7,))));
-                // Navigator.of(context).push(MaterialPageRoute(
-                //   builder: (context) => ver_ph(
-                //     ver_id: "verificationId.toString()",
-                //     phone:"+20${D.ph}",
-                //   ), ));
+                    (){
                 }
                   , child:Text((AppLocalizations.of(context)!.verify),style: TextStyle(color:Colors.black,fontSize: 22),),style:
                   ElevatedButton.styleFrom(shape: StadiumBorder(),

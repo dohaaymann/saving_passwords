@@ -1,11 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -155,8 +150,8 @@ class _acc_dataState extends State<acc_data> {
             leading: IconButton(onPressed: (){
               Navigator.of(context).pop();
               clearfields();
-            }, icon: Icon(Icons.arrow_back)),
-            title: Text(title,style: TextStyle(fontSize: 27)),automaticallyImplyLeading: false,
+            }, icon: Icon(Icons.arrow_back,color: Colors.white,)),
+            title: Text(title,style: TextStyle(color:Colors.white,fontSize: 27)),automaticallyImplyLeading: false,
             actions: [
               S_E?
               InkWell(onTap: ()async{
@@ -184,7 +179,6 @@ class _acc_dataState extends State<acc_data> {
                   "time":"${t}",
                   "Url":"${texturl.text}"
                 },"id=$id");
-                print(res);
                 late BuildContext dialogContext = context;
                 if(res>0){
                   Timer? timer = Timer(Duration(milliseconds: 3000), (){
@@ -208,7 +202,6 @@ class _acc_dataState extends State<acc_data> {
                                   color: Colors.black),)
                         );
                       });
-                  // Fluttertoast.showToast(msg:(AppLocalizations.of(context)!.saved),fontSize: 20);
                 }
               },
                 child: Container(alignment: Alignment.center,width:70,
@@ -265,7 +258,7 @@ class _acc_dataState extends State<acc_data> {
                                           ],),
                                       ],
                                     )),
-                                Divider(height: 7,),
+                                Divider(height: 7,color: Colors.black54,),
                                 Row(
                                   children: [
                                     Container(margin: EdgeInsets.only(left: 8,right: 8),
@@ -273,7 +266,9 @@ class _acc_dataState extends State<acc_data> {
                                           fontWeight:FontWeight.w800,fontSize: 18)),
                                     ),
                                     Expanded(
-                                      child: TextField( onTapOutside: (v){FocusManager.instance.primaryFocus?.unfocus();},controller: textuser,style: TextStyle(fontSize: 18), readOnly: edit,
+                                      child: TextField(
+                                          onTapOutside: (v){FocusManager.instance.primaryFocus?.unfocus();},
+                                          controller: textuser,style: TextStyle(fontSize: 18), readOnly: edit,
                                           decoration: InputDecoration(hintText:(AppLocalizations.of(context)!.add_username),
                                             contentPadding: EdgeInsets.only(left: 10, right: 5),
                                             border:edit?InputBorder.none:UnderlineInputBorder(),
@@ -281,7 +276,7 @@ class _acc_dataState extends State<acc_data> {
                                     ),
                                   ],
                                 ),
-                                Divider(),
+                                Divider(color: Colors.black54,),
                                 Row(
                                   children: [
                                     Container(margin: EdgeInsets.only(left: 8,right:10),width:90,
@@ -301,8 +296,8 @@ class _acc_dataState extends State<acc_data> {
                                     IconButton(onPressed: (){setState(() {
                                       hide=!hide;
                                     });}, icon:FaIcon(FontAwesomeIcons.eye,size: 20,))
-                                  ],
-                                ), Divider(height: 7,),
+                                  ]
+                                ), Divider(height: 7,color: Colors.black54,),
 
                               ],
                             ),
@@ -354,9 +349,9 @@ class _acc_dataState extends State<acc_data> {
                                 children: [Expanded(child: SizedBox()),
                                   Expanded(
                                     child: InkWell(splashColor: Colors.grey,
-                                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                                            (Set<MaterialState> states) {
-                                          if (states.contains(MaterialState.pressed))
+                                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                                            (Set<WidgetState> states) {
+                                          if (states.contains(WidgetState.pressed))
                                             return Colors.redAccent; //<-- SEE HERE
                                           return null; // Defer to the widget's default.
                                         },
@@ -420,20 +415,17 @@ class _acc_dataState extends State<acc_data> {
                                                                               str="File: '${image.path}'";
                                                                               l_test.add(image.path);
                                                                             });
-                                                                            print(imageTemp.toString());
-                                                                            print("File: '${image.path}'");
-                                                                            print(imageTemp.toString());
                                                                             setState(() => _image =imageTemp);
+                                                                            Navigator.of(context).pop();
                                                                           } on PlatformException catch(e) {
-                                                                            print('Failed to pick image: $e');
                                                                           }
                                                                           setState(() {
-                                                                            // edit=!edit;
+                                                                            edit=!edit;
                                                                             S_E=!S_E;
                                                                           });
                                                                         }
                                                                         else{
-                                                                          print("permission is not granted");
+
                                                                         }}catch(e){print("================$e");}
                                                                       Navigator.of(context).pop();
                                                                     },
@@ -462,10 +454,18 @@ class _acc_dataState extends State<acc_data> {
                                                                       }
                                                                       // //------------------
                                                                       try{
-                                                                        await _requestPermission(Permission.storage).catchError((e){print("---------$e");
+                                                                        await _requestPermission(Permission.storage).catchError((e){
+                                                                          Fluttertoast.showToast(
+                                                                              msg: "$e",
+                                                                              toastLength: Toast.LENGTH_SHORT,
+                                                                              gravity: ToastGravity.CENTER,
+                                                                              timeInSecForIosWeb: 1,
+                                                                              backgroundColor:Color(0xfff4af36),
+                                                                              textColor: Colors.white,
+                                                                              fontSize: 16.0
+                                                                          );
                                                                         return "===$e";});
                                                                         if(await _requestPermission(Permission.storage)==true){
-                                                                          print("Permission is granted");
                                                                           File? image;
                                                                           try {
                                                                             final image = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -479,21 +479,35 @@ class _acc_dataState extends State<acc_data> {
                                                                               str="File: '${image.path}'";
                                                                               l_test.add(image.path);
                                                                             });
-                                                                            print(imageTemp.toString());
-                                                                            print("File: '${image.path}'");
-                                                                            print(imageTemp.toString());
                                                                             setState(() {
                                                                               // edit=!edit;
                                                                               S_E=!S_E;
                                                                             });
+                                                                            Navigator.of(context).pop();
                                                                             setState(() => _image =imageTemp);
                                                                           } on PlatformException catch(e) {
-                                                                            print('Failed to pick image: $e');
+                                                                            Fluttertoast.showToast(
+                                                                                msg: "Failed to pick image: $e",
+                                                                                toastLength: Toast.LENGTH_SHORT,
+                                                                                gravity: ToastGravity.CENTER,
+                                                                                timeInSecForIosWeb: 1,
+                                                                                backgroundColor:Color(0xfff4af36),
+                                                                                textColor: Colors.white,
+                                                                                fontSize: 16.0
+                                                                            );
                                                                           }
 
                                                                         }
                                                                         else{
-                                                                          print("permission is not granted");
+                                                                          Fluttertoast.showToast(
+                                                                              msg: "permission is not granted",
+                                                                              toastLength: Toast.LENGTH_SHORT,
+                                                                              gravity: ToastGravity.CENTER,
+                                                                              timeInSecForIosWeb: 1,
+                                                                              backgroundColor:Color(0xfff4af36),
+                                                                              textColor: Colors.white,
+                                                                              fontSize: 16.0
+                                                                          );
                                                                         }}catch(e){print("================$e");}
                                                                       Navigator.of(context).pop();
                                                                     },
@@ -580,20 +594,15 @@ class _acc_dataState extends State<acc_data> {
                           Navigator.pop(dialogContext);
                         });
                         Navigator.of(context).pop();
-                        return showDialog(
-                            context: context,
-                            builder: (BuildContext context) {dialogContext=context;
-                            return
-                              AlertDialog(insetPadding: EdgeInsets.all(10),contentPadding: EdgeInsets.all(13),
-                                  shape: OutlineInputBorder(borderSide: BorderSide.none),
-                                  backgroundColor: Color(0xfff4af36),
-                                title: Text(
-                                  (AppLocalizations.of(context)!.deleted), textAlign: TextAlign.center,
-                                    style: TextStyle(fontWeight: FontWeight.bold,
-                                        fontSize:20,
-                                        color: Colors.white),)
-                              );
-                            });
+                      Fluttertoast.showToast(
+                          msg: "${AppLocalizations.of(context)!.deleted}",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.CENTER,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor:Color(0xfff4af36),
+                          textColor: Colors.white,
+                          fontSize: 16.0
+                      );
                     },
                       child:Text((AppLocalizations.of(context)!.delete),textAlign: TextAlign.center,style: TextStyle(color:Colors.white,fontSize: 20),))),
                         ],)],

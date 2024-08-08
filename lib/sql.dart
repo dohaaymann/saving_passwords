@@ -36,10 +36,21 @@ class SQLDB{
       'phone' Text,
       'stored' Text)
      ''');
+    await db.execute('''
+     CREATE TABLE 'lock'(
+      'phone' Text,
+      'stored' Text)
+     ''');
+    insertlock();
     // inserttable();
-    print("CREATE WAS DONE");
 
   }
+  insertlock()async{
+    Database? mydb=await db;
+    var res= await mydb?.insert('lock', {
+      'phone':"",
+      'stored':""
+    });}
   inserttable()async{
     Database? mydb=await db;
     var res= await mydb?.insert('spass', {
@@ -103,7 +114,6 @@ class SQLDB{
       'phone':"",
       'stored':""
     });
-    print("fill table WAS DONE");
     return res;
   }
   insert(String acc,String user,String pass,String note,String url,String logo)async{
@@ -121,63 +131,64 @@ class SQLDB{
       'phone':"",
       'stored':""
     });
-    print("inserted WAS DONE");
     return res;
   }
   read(String table)async{
     Database? mydb=await db;
     var res= await mydb?.query(table);
-    print("readdata WAS DONE");
+     
     return res;
   }readbyid(int id)async{
     Database? mydb=await db;
     var res= await mydb?.rawQuery("SELECT * FROM spass WHERE id=$id");
-    print("readdata WAS DONE");
+     
     return res;
   }selectimg(int id)async{
     Database? mydb=await db;
     var res= await mydb?.rawQuery("SELECT image FROM spass WHERE id=$id");
-    print("readdata WAS DONE");
+     
     return res;
   }selectuser()async{
     Database? mydb=await db;
     var res= await mydb?.rawQuery("SELECT user FROM spass");
-    print("readdata WAS DONE");
+     
     return res;
   }selectphone()async{
     Database? mydb=await db;
-    var res= await mydb?.rawQuery("SELECT phone FROM spass");
-    print("seleced WAS DONE");
+    var res= await mydb?.rawQuery("SELECT phone FROM lock");
     return res;
   }selectstored()async{
     Database? mydb=await db;
-    var res= await mydb?.rawQuery("SELECT stored FROM spass");
-    print("seleced WAS DONE");
+    var res= await mydb?.rawQuery("SELECT stored FROM lock");
     return res;
   }
   update(var value,var mywhere)async{
     Database? mydb=await db;
     var res= await mydb?.update('spass',value,where:mywhere );
     // var res= await mydb?.rawUpdate(sql);
-    print("updated WAS DONE");
+      
     return res;
   } updatetoall(var value)async{
     Database? mydb=await db;
     var res= await mydb?.update('spass',value,);
     // var res= await mydb?.rawUpdate(sql);
-    print("updated WAS DONE");
+      
+    return res;
+  } updatelock(var value)async{
+    Database? mydb=await db;
+    var res= await mydb?.update('lock',value,);
+    // var res= await mydb?.rawUpdate(sql);
+      
     return res;
   }
   delete(int id)async{
     Database? mydb=await db;
     var res= await mydb?.delete("spass",where: "id=$id");
-    print("DELETE WAS DONE");
     return res;
   }
   mydeletedatabase()async{
     var database=await getDatabasesPath();
     path=join(database,"untitle3.db");
     await deleteDatabase(path);
-    print("database deleted");
   }
 }
